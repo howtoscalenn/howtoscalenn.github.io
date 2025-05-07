@@ -460,7 +460,7 @@ So, we should counter this behavior by $$n$$.
 However, it's upstream gradient, $$g_t$$ already consists of $$\Theta(1/n)$$ scale entries,
 we don't need to counter this in SGD optimizer setup.
 (simply put, gradient with respect to the output logit is $$\Theta(1)$$ and weight matrix has $$\Theta(1/\sqrt{n})$$ coordinate, 
-but in muP, we multiply output logit by $$1/sqry{n}$$. 
+but in muP, we divide output logit by $$sqrt{n}$$ or use $$\Theta(1/n)$$ std. 
 so we can think the upstream gradient $$g_t = W \otimes dL/dy$$ can have typical size of $$\Theta(1/n)$$.
 we will discuss this later in this post)
 
