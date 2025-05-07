@@ -459,6 +459,7 @@ So, we should counter this behavior by $$n$$.
 
 However, it's upstream gradient, $$g_t$$ already consists of $$\Theta(1/n)$$ scale entries,
 we don't need to counter this in SGD optimizer setup.
+(we will discuss this later in this post)
 
 $$
 \begin{aligned}
@@ -490,7 +491,7 @@ z_{t+1}
 = (W_{t} + \eta \nabla_{W_{t}}L)x' 
 & \\
 &
-= W_t x' + (\color{red}{n} \underbrace{\frac{\eta}{\color{blue}{n}}}_{\text{if optim==adam}}) g_t \underbrace{ \frac{(x^T x')}{\color{red}{n}}}_{\text{c}}
+= W_t x' + (\color{red}{n} \underbrace{\frac{\eta}{\color{blue}{n}}}_{\text{if optim==adam}}) \underbrace{g_t \frac{(x^T x')}{n}}_{\Theta(1)}
 & \\
 \end{aligned}
 $$
