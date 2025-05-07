@@ -1395,6 +1395,8 @@ In addition, it has been shown to outperform the vanilla Transformer even in set
     - It has the same dynamic range as `float32 (fp32)` and doesn't require dynamic loss scaling (no overhead).
     - Update) consider `fp8` if you have state-of-the-art accelerators and no skill issues.
 
+- **Consider using `Maximal Update Parameterization (muP)` instead of Standard Parameterization (SP)**
+
 - **Monitor logits and norm or RMS of all (pre-)activations**
     - Training instability typically arises in logits (values before the softmax operation)  
       → See [Small-scale proxies for large-scale Transformer training instabilities](https://arxiv.org/abs/2309.14322)
@@ -1438,6 +1440,8 @@ In addition, it has been shown to outperform the vanilla Transformer even in set
             - ...
 
 - **Consider QK LayerNorm**
+    - Enlarge lr basin
+    - I'd like to say `"Don't get too caught up in finding completely optimal HPs"`. IMO, it's ok to use near-optimal HPs, so youd better use your resource to data quality.
 
 Let me tell about "why should we care MFU" little bit.
 It is noteworthy that the one of the most important thing when scale up is `"if your method (new arch, new learning algorithm) is scalable or not"`.
@@ -1514,6 +1518,17 @@ And DeepSeek consistently uses 0.006 as the init std from v1 (7B dense) to v3 (6
 I honestly don’t know exactly why this works so well.  
 My guess is that it’s due to the combination of many normalization modules, residual connections, and adaptive optimizers—but who really knows?
 
+
+### <mark style='background-color: #dcffe4'> Rethinking Conventional Wisdom </mark>
+
+Inspired by [Rethinking Conventional Wisdom in Machine Learning: From Generalization to Scaling](https://arxiv.org/abs/2409.15156).
+In conventional regime, small bsz and lr at [Edge of Stability (EoS)](https://arxiv.org/abs/2103.00065) is known as good choice, 
+but it does not seem to fit in large scale training and overparameterized regime.
+So, i recommed you to doubt conventional wisdom when scaling up NN.
+
+![conventional_wisdom_lr](/assets/img/how_to_scale_cheatsheet/conventional_wisdom_lr.png){: width="100%"}
+
+![conventional_wisdom_bsz](/assets/img/how_to_scale_cheatsheet/conventional_wisdom_bsz.png){: width="100%"}
 
 ## <mark style='background-color: #fff5b1'> Outro </mark> {#outro}
 
