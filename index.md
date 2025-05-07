@@ -159,24 +159,6 @@ That’s why we need to analyze 'per-layer behavior' and adopt 'per-layer parame
 
 ![abc_parameterization_fig3](/assets/img/how_to_scale_cheatsheet/abc_parameterization_fig3.jpg){: width="100%"}
 
-For some motivation (even though this isn’t strictly about parameterization),  
-transformers with pre-norm often show redundancy in deeper layers.
-
-Pre-norm helps preserve upstream gradients, improving training stability.  
-But as a side-effect, it makes it harder for the residual features in deeper layers to contribute to the model’s main residual stream—a phenomenon known as 'representation collapse'.
-
-So even if you spend tons of FLOPs doing full forward and backward passes,  
-`feature learning across layers can become uneven`, which is essentially a `waste of compute`.
-
-![mixln_overview](/assets/img/how_to_scale_cheatsheet/mixln_overview.png){: width="100%"}
-
-That’s the point.
-muP doesnt want to allow this.
-muP explicitly aims for `"every layer to learn features maximally"`,  
-and this is clearly stated in TP-5.
-
-![tp5_paper_learning_speed_diff_quote](/assets/img/how_to_scale_cheatsheet/tp5_paper_learning_speed_diff_quote.png){: width="100%"}
-
 muP is based on `three core desiderata` that achieve three things: `'training stability (don't blow up)', 'feature learning (feature should be changed enough)' and 'non-triviality (weight should not be stuck at initialization)'`.
 By solving for these desiderata, you get a parameterization that not only encourages maximal feature learning but also theoretically guarantees HP transfer across width.
 (Again, i'd like to say HP transfer was never the primary goal. it follows)
@@ -197,6 +179,29 @@ it wouldn’t work, because the hidden layers never learned meaningful features.
 
 ![abc_parameterization_fig2](/assets/img/how_to_scale_cheatsheet/abc_parameterization_fig2.jpg){: width="100%"}
 
+That’s the point.
+muP doesnt want to allow this.
+muP explicitly aims for `"every layer to learn features maximally"`,  
+and this is clearly stated in TP-5.
+
+![tp5_paper_learning_speed_diff_quote](/assets/img/how_to_scale_cheatsheet/tp5_paper_learning_speed_diff_quote.png){: width="100%"}
+
+For more motivation (even though below example isn’t strictly about parameterization, but i'd like to raise the research question),  
+transformers with pre-norm often show redundancy in deeper layers.
+Post-norm based transformer, which is originally proposed in [Attention Is All You Need](https://arxiv.org/abs/1706.03762) is better than Pre-norm variant at performance,
+but post-norm does not preserve upstream gradients (identity mapping),
+so it requires lr warmup stage or other tactics to improve training stability.
+However, for pre-norm it makes harder for the residual features in deeper layers to contribute to the model’s main residual stream—a phenomenon known as 'representation collapse' as a side-effect. 
+
+So in this case, feature learning across layers can become uneven,
+and it leads to `waste of compute`.
+
+![mixln_overview](/assets/img/how_to_scale_cheatsheet/mixln_overview.png){: width="100%"}
+
+So, many researchers studied normalization module or parameterization like [residual post norm (sandwich norm)](https://arxiv.org/abs/2111.09883), [mix-ln](https://arxiv.org/abs/2412.13795v1), [deep-norm](https://arxiv.org/abs/2203.00555), or [depth scaled sandwich norm](https://arxiv.org/abs/2504.07866), ... to achieve both training stability, and effective feature learning.
+
+![pangu_ultra_depth_scaled_sandwich_norm_fig](/assets/img/how_to_scale_cheatsheet/pangu_ultra_depth_scaled_sandwich_norm_fig.png){: width="100%"}
+
 In TP-5, the authors show that muP not only transfers optimal lr across width,  
 but also achieves better performance overall in Language Modeling (LM) task (GPT-3 setup).
 
@@ -209,7 +214,7 @@ That said, in real-world scenarios, maybe it's not true that muP always outperfo
 In my own experience, muP has shown stronger benchmark results at small to medium scales (e.g., 200–300B tokens),  
 but the returns seem to diminish as scale increases.
 my guess is that even though other parameterizations such as SP is in the lazy training regime,  
-the embedding and output layers eventually start learn something in later.  
+the embedding and output layers eventually start learn something in later.
 (or maybe… it’s just my skill issue)
 
 
