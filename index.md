@@ -511,6 +511,8 @@ Below figure is called coordinate check where coordinate means each element valu
 
 ![tp5_paper_fig5](/assets/img/how_to_scale_cheatsheet/tp5_paper_fig5.png){: width="100%"}
 
+And now, one can accept `it ensures maximal feature learning for every layers without instability, and all init std and update quantity is invariant to width n, so optimal training behavior (optimal lr) will be transferred`.
+
 Not that, however, `not all parameters are same`, 
 which means that $$n \times n$$ hidden matrix (we call this matrix-like tensor) has two infinite dimensions.
 but vector-like has one.
