@@ -214,7 +214,7 @@ but also achieves better performance overall in Language Modeling (LM) task (GPT
 That said, in real-world scenarios, maybe it's not true that muP always outperform SP.
 In my own experience, muP has shown stronger benchmark results at small to medium scales (e.g., 200–300B tokens),  
 but the returns seem to diminish as scale increases.
-my guess is that even though other parameterizations such as SP is in the lazy training regime,  
+my guess is that even though other parameterizations such as SP is in the [lazy training regime](https://arxiv.org/abs/1812.07956),  
 the embedding and output layers eventually start learn something in later.
 (or maybe… it’s just my skill issue)
 
@@ -1099,10 +1099,12 @@ I'd like to say there is still many room to do in advanced architectures like Mo
 
 ### <mark style='background-color: #dcffe4'> HP Scaling Laws </mark>
 
-As discussed above, even muP does not guarantee hyperparameter (HP) transfer across training tokens or bsz.  
-So, fitting scaling laws for HPs like lr or bsz seems reasonable in practice.
-
-Even though relying on empirical scaling laws may not feel mathematically beautiful, scaling behavior is universal—and it appears to hold in the HP landscape as well.
+As discussed above, even muP does not guarantee hyperparameter (HP) transfer across training tokens or bsz.
+To my best knowledge, there is not theory to ensure optimal lr scaling rule for both training horizon and batch size.
+It's very complicated to predict because every factors like bsz, num tokens, adaptive optimizer's HPs, ... are all correlated.
+So, even though relying on empirical scaling laws may not feel mathematically beautiful, 
+fitting power laws for HPs like lr or bsz given computing budget or training horizon seems reasonable in practice.
+Because `scaling is universal behavior`.
 
 To the best of my knowledge, DeepSeek was the first to empirically fit HP scaling laws for large-scale neural networks.  
 In [DeepSeek LLM (DS-V1)](https://arxiv.org/abs/2401.02954), they fit lr and bsz with respect to the compute budget $$C$$:
