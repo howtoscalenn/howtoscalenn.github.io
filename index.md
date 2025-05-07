@@ -201,6 +201,7 @@ and it leads to `waste of compute`.
 So, many researchers studied normalization module or parameterization like [residual post norm (sandwich norm)](https://arxiv.org/abs/2111.09883), [mix-ln](https://arxiv.org/abs/2412.13795v1), [deep-norm](https://arxiv.org/abs/2203.00555), or [depth scaled sandwich norm](https://arxiv.org/abs/2504.07866), ... to achieve both training stability, and effective feature learning.
 
 ![pangu_ultra_depth_scaled_sandwich_norm_fig](/assets/img/how_to_scale_cheatsheet/pangu_ultra_depth_scaled_sandwich_norm_fig.png){: width="100%"}
+*Fig. depth scaled sandwich norm from [Pangu Ultra](https://arxiv.org/abs/2504.07866)*
 
 In TP-5, the authors show that muP not only transfers optimal lr across width,  
 but also achieves better performance overall in Language Modeling (LM) task (GPT-3 setup).
