@@ -257,8 +257,10 @@ $$
 
 It means every element (coordinate) of weight matrix has roughly $$1/\text{fan-in}$$ size value.
 
-Also, there is a lot of init method like [Xavier Init](https://proceedings.mlr.press/v9/glorot10a.html) and so on in SP.
-(if matrix shape is $$n \times n$$, Xavier is same as Lecun init)
+Also, there is a lot of init method like [Xavier Init](https://proceedings.mlr.press/v9/glorot10a.html), He Init and so on.
+Especially, for Xavier Init, it consider backpropagation at initalization point.
+Because $$dL/dx$$ is outer product of upstream gradient and weight matrix, we can derive backward propagation similar to forward, $$dL/dx \sim \mathcal{N}(0, \text{fan-out}\sigma_W^2 \sigma_x^2)$$.
+If matrix shape is $$n \times n$$, Xavier is same as Lecun init.
 
 ![xavier_init_torch_doc](/assets/img/how_to_scale_cheatsheet/xavier_init_torch_doc.png){: width="100%"}
 *Fig.*
@@ -1524,11 +1526,13 @@ My guess is that it’s due to the combination of many normalization modules, re
 Inspired by [Rethinking Conventional Wisdom in Machine Learning: From Generalization to Scaling](https://arxiv.org/abs/2409.15156).
 In conventional regime, small bsz and lr at [Edge of Stability (EoS)](https://arxiv.org/abs/2103.00065) is known as good choice, 
 but it does not seem to fit in large scale training and overparameterized regime.
-So, i recommed you to doubt conventional wisdom when scaling up NN.
+So, i'd like to recommed you to doubt conventional wisdom when scaling up NN.
 
 ![conventional_wisdom_lr](/assets/img/how_to_scale_cheatsheet/conventional_wisdom_lr.png){: width="100%"}
+*Fig. lr at EoS is not optimal in Large Scale Regime*
 
 ![conventional_wisdom_bsz](/assets/img/how_to_scale_cheatsheet/conventional_wisdom_bsz.png){: width="100%"}
+*Fig. smaller batch size is not optimal in Large Scale Regime*
 
 ## <mark style='background-color: #fff5b1'> Outro </mark> {#outro}
 
@@ -1606,6 +1610,7 @@ I would like to thank [Jingyuan Liu](https://x.com/JingyuanLiu123) for reading t
     - [Scaling Laws for Neural Language Models](https://arxiv.org/abs/2001.08361)
     - [Tensor Program (TP)-IV (a.k.a muP)](https://arxiv.org/abs/2011.14522)
     - [Tensor Program (TP)-V (a.k.a muTransfer)](https://arxiv.org/abs/2203.03466)
+    - [A Spectral Condition for Feature Learning](https://arxiv.org/abs/2310.17813)
     - [DeepSeek LLM: Scaling Open-Source Language Models with Longtermism](https://arxiv.org/abs/2401.02954)
     - [Scaling Exponents Across Parameterizations and Optimizers](https://arxiv.org/abs/2407.05872)
 - Videos
@@ -1615,3 +1620,4 @@ I would like to thank [Jingyuan Liu](https://x.com/JingyuanLiu123) for reading t
     - [Large N Limits: Random Matrices & Neural Networks from Greg Yang w/ Timothy Nguyen](https://www.youtube.com/watch?v=1aXOXHA7Jcw)
 - Others
     - [Simo's Scaling Guidbook, 'What to do to scale up?'](https://cloneofsimo.notion.site/What-to-do-to-scale-up-09e469d7c3444d6a90305397c38a46f5)
+    - [The Practitioner’s Guide to the Maximal Update Parameterization - Joint project of EleutherAI and Cerebras](https://www.cerebras.ai/blog/the-practitioners-guide-to-the-maximal-update-parameterization)
