@@ -496,8 +496,11 @@ z_{t+1}
 \end{aligned}
 $$
 
-Intuitively, this scaling logic holds for any dot product.  
+Actually, it's more than CLT, LLN and dot product. we should consider full optimization trajectory using momentum. and batch size is greater than one in real world scenarion where gradient is averaged by multiple rank 1 gradient and things go wild. if you want to see full derivation, i recommend you to read [TP-IVb](https://arxiv.org/abs/2308.01814), TP-5 or [A Spectral Condition for Feature Learning](https://arxiv.org/abs/2310.17813).
+
+Anyway, it's all about CLT, LLN and dot product intuitively.
 Choose LLN or CLT based on whether the vectors are correlated or not.
+And this scaling logic holds for any dot product. 
 That's it.
 
 ![LLN_vs_CLT_during_NN_training](/assets/img/how_to_scale_cheatsheet/LLN_vs_CLT_during_NN_training.png){: width="100%"}
