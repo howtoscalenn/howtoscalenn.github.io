@@ -313,7 +313,20 @@ That means we want to preserve pre-activation output as $$\Theta(1)$$.
 Here $$\Theta(1)$$ means output pre-activation's scale does not depend on model width (embedding dim), $$n$$.
 That is, muP is `scale invariant` (good behavior for HP transfer).
 
-So, we can just use fan-in variance (fan-in (featrue in) dim is n) like SP for forward stability `at initilization`.
+The symbols `$$\Theta(\cdot)$$` and `$$O(\cdot)$$` are known as `asymptotic notations`, commonly referred to as [Big O notation](https://en.wikipedia.org/wiki/Big_O_notation). While widely used in CS to describe algorithmic complexity, they actually originate from mathematics (and Greg Yang comes from a mathematical background as far as i know).
+There are three asymtotic notation, and you'll notice both `$$O$$` and `$$\Theta$$` are used for muP derivation.
+
+- `$$O(\cdot)$$`: **Upper bound** – the function grows *at most* this fast.
+- `$$\Omega(\cdot)$$`: **Lower bound** – the function grows *at least* this fast.
+- `$$\Theta(\cdot)$$`: **Tight bound** – the function grows *exactly* this fast (within constant factors).
+
+![asymptotic_notation](/assets/img/how_to_scale_cheatsheet/asymptotic_notation.png){: width="100%"}
+*Fig. Source from [here](https://imgur.com/a/EiB5S0e)*
+
+![big_o_notation_in_spectral_condition_paper](/assets/img/how_to_scale_cheatsheet/big_o_notation_in_spectral_condition_paper.png){: width="100%"}
+*Fig. Source from [A Spectral Condition for Feature Learning](https://arxiv.org/abs/2310.17813)*
+
+Anyway, we can just use fan-in variance (fan-in (featrue in) dim is n) like SP for forward stability `at initilization`.
 But after single optimization step (SGD or Adam; let's assume SGD first),
 the weight is updated as:
 
@@ -482,7 +495,7 @@ $$
 But if we use adaptive optimizer like Adam,
 gradient is rescaled by elementwise,
 so, we should scale lr by $$1/n$$ to explicitly counter.
-That’s why we can simply put “muP = 1/n lr rule for hidden layers (under Adam).”
+That’s why we can simply put `“muP = 1/n lr rule for hidden layers (under Adam)”`.
 
 $$
 \begin{aligned}
@@ -494,7 +507,7 @@ z_{t+1}
 = (W_{t} + \eta \nabla_{W_{t}}L)x' 
 & \\
 &
-= W_t x' + (\color{red}{n} \underbrace{\frac{\eta}{\color{blue}{n}}}_{\text{if optim==adam}}) \underbrace{g_t \frac{(x^T x')}{n}}_{\Theta(1)}
+= W_t x' + \frac{\eta}{\color{blue}{n}} \underbrace{\nabla_{W_{t}}L}_{\Theta(1)} \underbrace{x'}_{\Theta(1)} 
 & \\
 \end{aligned}
 $$
@@ -1627,6 +1640,7 @@ I would like to thank [Jingyuan Liu](https://x.com/JingyuanLiu123) for reading t
     - [Greg Yang - Feature Learning in Infinite-Width Neural Networks](https://www.youtube.com/watch?v=6tA7r7Y5vUM)
     - [Greg Yang - Tuning Large Neural Networks via Zero-Shot Hyperparameter Transfer](https://www.youtube.com/watch?v=XpU3mDKJOak)
     - [Large N Limits: Random Matrices & Neural Networks from Greg Yang w/ Timothy Nguyen](https://www.youtube.com/watch?v=1aXOXHA7Jcw)
+    - [Katie Everett - Scaling Exponents Across Parameterizations and Optimizers](https://www.youtube.com/watch?v=CnAfD7aVzLg)
 - Others
     - [Simo's Scaling Guidbook, 'What to do to scale up?'](https://cloneofsimo.notion.site/What-to-do-to-scale-up-09e469d7c3444d6a90305397c38a46f5)
     - [The Practitioner’s Guide to the Maximal Update Parameterization - Joint project of EleutherAI and Cerebras](https://www.cerebras.ai/blog/the-practitioners-guide-to-the-maximal-update-parameterization)
