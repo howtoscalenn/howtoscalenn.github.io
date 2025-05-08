@@ -313,12 +313,12 @@ That means we want to preserve pre-activation output as $$\Theta(1)$$.
 Here $$\Theta(1)$$ means output pre-activation's scale does not depend on model width (embedding dim), $$n$$.
 That is, muP is `scale invariant` (good behavior for HP transfer).
 
-The symbols `$$\Theta(\cdot)$$` and `$$O(\cdot)$$` are known as `asymptotic notations`, commonly referred to as [Big O notation](https://en.wikipedia.org/wiki/Big_O_notation). While widely used in CS to describe algorithmic complexity, they actually originate from mathematics (and Greg Yang comes from a mathematical background as far as i know).
-There are three asymtotic notation, and you'll notice both `$$O$$` and `$$\Theta$$` are used for muP derivation.
+The symbols $$\Theta(\cdot)$$ and $$O(\cdot)$$ are known as `asymptotic notations`, commonly referred to as [Big O notation](https://en.wikipedia.org/wiki/Big_O_notation). While widely used in CS to describe algorithmic complexity, they actually originate from mathematics (and Greg Yang comes from a mathematical background as far as i know).
+There are three asymtotic notation, and you'll notice both $$O$$ and $$\Theta$$ are used for muP derivation.
 
-- `$$O(\cdot)$$`: **Upper bound** – the function grows *at most* this fast.
-- `$$\Omega(\cdot)$$`: **Lower bound** – the function grows *at least* this fast.
-- `$$\Theta(\cdot)$$`: **Tight bound** – the function grows *exactly* this fast (within constant factors).
+- 1.$$O(\cdot)$$: **Upper bound** – the function grows *at most* this fast.
+- 2.$$\Omega(\cdot)$$: **Lower bound** – the function grows *at least* this fast.
+- 3.$$\Theta(\cdot)$$: **Tight bound** – the function grows *exactly* this fast (within constant factors).
 
 ![asymptotic_notation](/assets/img/how_to_scale_cheatsheet/asymptotic_notation.png){: width="100%"}
 *Fig. Source from [here](https://imgur.com/a/EiB5S0e)*
