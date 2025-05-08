@@ -555,8 +555,9 @@ Then, we can derive scaling rule for embedding and unembedding matrices, and bia
 
 - Some notes for derivation
   - input vector's coordinate is typically i.i.d and $$\Theta(1)$$ because it's our desideratum (and i guess it's reasonable because we use input layernorm for every module)
-  - here $$O(1)$$ and $$\Theta(1)$$ are different ($$\Theta(1)$$ include lower bound), and network output logit, $$y=W_{out}x$$ should be $$O(1)$$, not $$\Theta(1)$$
-    - output weight also perform dot product between n-dim vectors, but it's variance is different from hidden matrix ($$\sigma^2_{out}=1/n^2$$ vs $$\sigma^2_{hidden}=1/n$$)
+  - here $$O(1)$$ and $$\Theta(1)$$ are different ($$\Theta(1)$$ include lower bound), and network output logit, $$y=W_{out}x$$ should be $$O(1)$$, not $$\Theta(1)$$ coordinate
+    - For the desideratum 2 (network output logit should be $$O(1)$$), it can go to zero at initialization. but the network output should be \Theta(1) after training.
+    - output weight also perform dot product between n-dim vectors, but it's variance is different from hidden matrix ($$\sigma^2_{out}=1/n^2$$ vs $$\sigma^2_{hidden}=1/n$$) because it should ensure $$\vert Wx \vert = \vert \sum_i W_{out,i} x_i \vert = O(1)$$.
   - logit gradient $$dL/dy$$ is $$\Theta(1)$$ (easy to derive using Mean Square Error (MSE) or Cross-Entropy (CE) Loss. it's not depend on width, $$n$$)
   - intuitively, to maximize feature learning, it's acceptable to maintain init weight's quantity and update quantity in same scale ($$\Delta W / W_{init} \approx \Theta(1)$$)
   - for hidden matrix, it's upstream gradient has $$\Theta(1/n)$$ coordinate ($$dL/dz \approx \Theta(1/n)$$ because $$dL/dz=W_{out} \otimes dL/dy$$ and $$W_{out}$$ has $$1/n$$ coordinate ($$1/n^2$$ variance)
