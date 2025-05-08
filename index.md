@@ -575,6 +575,7 @@ Actually, What muP want to say is simply as follows
 
 ![what_mup_want_in_tp4](/assets/img/how_to_scale_cheatsheet/what_mup_want_in_tp4.png){: width="70%"}
 
+
 ### <mark style='background-color: #dcffe4'> abc-parameterization </mark>
 
 Actually, TP authors defines abc-parameterization for muP,
@@ -1301,10 +1302,6 @@ and DSV1’s FLOPs-per-token calculation doesn’t account for this at all.
 So, if you want to use any existing HP scaling law,  
 you should at least match the original setup they were derived from (e.g., wide/shallow ratio, LR scheduler, etc.).  
 Otherwise, you should fit your own law.
-
-![stepfun_law_landscape_shift](/assets/img/how_to_scale_cheatsheet/stepfun_law_landscape_shift.png){: width="100%"}
-*Fig.*
-
 
 ### <mark style='background-color: #dcffe4'> Some Scaling Behaviors of Critical Batch Size and Sensitivity to Optimizer </mark>
 
