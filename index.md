@@ -63,7 +63,7 @@ and the post theme is based on [diffusionflow.github.io](https://diffusionflow.g
 
 ## <mark style='background-color: #fff5b1'> Motivation </mark> {#motivation}
 
-`"how to scale"` in this post is "how we should set the `initialization standard deviation (init std), learning rate (lr), and batch size (bsz) and other hyperparameters` as model size (including both width and depth) and dataset size grow".
+`"how to scale"` in this post is "how we should set the `initialization standard deviation (init std), learning rate (lr), and batch size (bsz) and other hyperparameters (HPs)` as model size (including both width and depth) and dataset size grow".
 It is indeed true that as you scale up computing budget, $$C=6ND$$ (where $$N$$ is model size and $$D$$ is dataset size), your model tends to perform better.
 
 
@@ -82,7 +82,7 @@ $$
 *Fig. Scaling Law is Universal Behavior. For Every Tasks, It Works. Source from [Scaling Laws for Neural Language Models](https://arxiv.org/abs/2001.08361)*
 
 However, scaling law papers never tell us `how to set the lr or bsz for a given computing budget, C`.
-This is a non-trivial issue, because "more compute always leads to better performance" is not guaranteed unless you're using near-optimal hyperparameters (HPs) for each $$C$$.  
+This is a non-trivial issue, because "more compute always leads to better performance" is not guaranteed unless you're using near-optimal HPs for each $$C$$.  
 If you fail to find the right HPs, you might conclude:
 > "WTF? larger isn’t better? okay, let’s quit scaling."
 
@@ -140,15 +140,15 @@ It’s important to note that muP literally stands for `Maximal Update`.
 Many people often `misunderstand muP is only about hyperparameter (HP) transfer`, but that's not true.  
 Of course, HP transfer is a nice property.
 it allows us to avoid extensive grid searches over HPs for a given compute budget $$C$$ when predicting scaling laws or training very large models.  
-But muP is fundamentally about ensuring that `every layer learns features maximally at each optimization step`, by assigning per-parameter hyperparameters (lr, init std, etc.), `even as the network’s width goes to infinity`.
+But muP is fundamentally about ensuring that `every layer learns features maximally at each optimization step`, by assigning per-parameter HPs (lr, init std, etc.), `even as the network’s width goes to infinity`.
 
 ![origin_of_muP](/assets/img/how_to_scale_cheatsheet/origin_of_muP.png){: width="100%"}
 *Fig. [Openreview of TP-5](https://openreview.net/forum?id=Bx6qKuBM2AD). Greg Yang explain 'muP is not only for HP transfer'*
 
 So, muP is designed to enable **maximal feature learning**, but Why SP is not enough? 
 In SP, we often find that `some weights receive disproportionately large gradients`, while `others receive gradients that are too small`.  
-If we reduce the learning rate to stabilize the weights that receive large gradients, the others can become stuck **meaning they don’t learn enough features**, which leads to inefficient training.  
-On the other hand, if we increase the learning rate too much, **the model may diverge**.
+If we reduce the lr to stabilize the weights that receive large gradients, the others can become stuck **meaning they don’t learn enough features**, which leads to inefficient training.  
+On the other hand, if we increase the lr too much, **the model may diverge**.
 So we are in the **dilemma**.
 
 ![tp5_paper_learning_speed_diff_quote](/assets/img/how_to_scale_cheatsheet/tp5_paper_learning_speed_diff_quote.png){: width="100%"}
@@ -159,7 +159,7 @@ That’s why we need to carefully analyze 'per-layer behavior' and adopt 'per-la
 Of course, there may be other viable approaches.  
 Normalization techniques such as BatchNorm and LayerNorm can help correct imbalances and improve optimization.  
 Adaptive optimizers may also help, but normalization and Adam alone are insufficient.  
-Recently proposed advanced optimizers like [Muon](https://kellerjordan.github.io/posts/muon/) (with proper scaling factors) and [SCION](https://arxiv.org/abs/2502.07529) show that learning rates can transfer across model widths.
+Recently proposed advanced optimizers like [Muon](https://kellerjordan.github.io/posts/muon/) (with proper scaling factors) and [SCION](https://arxiv.org/abs/2502.07529) show that lr can transfer across model widths.
 (Not sure whether they guarantee *maximal* feature learning, though.)
 
 ![scion_lr_transferrability](/assets/img/how_to_scale_cheatsheet/scion_lr_transferrability.png){: width="100%"}
@@ -523,7 +523,7 @@ z_{t+1}
 \end{aligned}
 $$
 
-Actually, it's more than CLT, LLN and dot product. we should consider full optimization trajectory with momentum and other factors. and batch size is greater than one in real world scenario where gradient is averaged by multiple rank 1 gradient and things go wild. if you want to see full derivation, i recommend you to read [TP-IVb](https://arxiv.org/abs/2308.01814), TP-5 or [A Spectral Condition for Feature Learning](https://arxiv.org/abs/2310.17813).
+Actually, it's more than CLT, LLN and dot product. we should consider full optimization trajectory with momentum and other factors. and bsz is greater than one in real world scenario where gradient is averaged by multiple rank 1 gradient and things go wild. if you want to see full derivation, i recommend you to read [TP-IVb](https://arxiv.org/abs/2308.01814), TP-5 or [A Spectral Condition for Feature Learning](https://arxiv.org/abs/2310.17813).
 
 Anyway, it's all about CLT, LLN and dot product intuitively.
 Choose LLN or CLT based on whether the vectors are correlated or not.
@@ -853,7 +853,7 @@ tensor(2.5274e-05, grad_fn=<MeanBackward0>) tensor(-0.0009, grad_fn=<MeanBackwar
 
 ### <mark style='background-color: #dcffe4'> muP is not Silver Bullet (across the batch size and training horizon) </mark>
 
-Now we know how to scale up model size — we know how to transfer optimal hyperparameters from small-scale proxy experiments.  
+Now we know how to scale up model size — we know how to transfer optimal HPs from small-scale proxy experiments.  
 However, even though muP is theoretically well-defined,  
 `it does not guarantee HP transfer across training tokens or batch size`.  
 Especially, the fact that 'muP does not ensure HP transfer across training horizon' is not widely spread.
@@ -877,10 +877,10 @@ This leads to a `left-shift trend in the optimal lr curve even though you use mu
 
 Now consider bsz.
 
-It’s common to increase the batch size when training larger models to achieve better training efficiency (throughput).  
-(As long as you don’t cross the 'critical batch size' — we’ll discuss that later.)
+It’s common to increase the bsz when training larger models to achieve better training efficiency (throughput).  
+(As long as you don’t cross the `critical bsz` — we’ll discuss that later.)
 
-But increasing batch size reduces training steps.  
+But increasing bsz reduces training steps.  
 So we can think like
 > “Hmm, gradients are more accurate but training steps are fewer, so let’s **raise the lr** to compensate.”
 
@@ -934,7 +934,7 @@ This table is heavily inspired by [‘What to do to scale up?’ from Simo Ryu](
 - `width`: Width refers to the hidden size (or head dimension) of a neural network (e.g., in Transformers). For small-scale proxy (base) models, the shape of a specific layer’s weight matrix is given by $$ W_l \in \mathbb{R}^{\text{fan-in}_\text{base} \times \text{fan-in}_\text{base}} $$. In TP-5, Tables 3, 8, and 9 describe parameterization in terms of `fan_in` and `fan_out`, corresponding to input and output feature dimensions. In this table, we define $$ \tilde{n} = \text{fan-in} \cdot \frac{1}{\text{fan-in}_\text{base}} $$. If $$\text{fan-in}_\text{base} = 1$$, it recovers to Table 8. For example, if $$\sigma = 1/\sqrt{1024} \approx 0.031$$, then init std becomes $$1/\text{fan-in}$$.
   - e.g.: $$\color{red}{\tilde{n} = 100}$$
 - `multiplier`
-    - Note that there are two multipliers: one for width scaling and one for hyperparameters.  
+    - Note that there are two multipliers: one for width scaling and one for HPs.  
     For example, embedding outputs may be defined as `x = hparam_multiplier × width_scaling_multiplier × embedding_layer(x)`,  
     where `width_scaling_multiplier` remains constant as width increases, and `hparam_multiplier` refers to things like lr.
   - A common choice is $$\alpha_{\text{embed}} = 10$$ (based on various muP-related studies), with width scaling multiplier set to 1.
@@ -1079,7 +1079,7 @@ Then what fan-in number should we use?
 
 Also, MoE consumes different the number of tokens compared to attention module.
 And in MoE training, effective bsz are different for attn and FFN modules because MoE is sparsely activated according to tokens.
-Assume global batch size (gbsz) is $$N$$, then attn module will consume $$N$$ tokens, but FFN consumes $$\frac{N}{E}\times K \times 1.0$$ if topk=K, num_exeprts=E, capacity=1.0, Expert Parallelism (EP)=1.
+Assume Global batch size (gbsz) is $$N$$, then attn module will consume $$N$$ tokens, but FFN consumes $$\frac{N}{E}\times K \times 1.0$$ if topk=K, num_exeprts=E, capacity=1.0, Expert Parallelism (EP)=1.
 So, gradient noise scale from each modules may be different.
 Then should we scale down lr compared to attn?
 What per layer lr, init std and bsz should we use for FFNs compared to dense?
@@ -1140,7 +1140,7 @@ I'd like to say there is still many room to do in advanced architectures like Mo
 ### <mark style='background-color: #dcffe4'> HP Scaling Laws </mark>
 
 As discussed above, even muP does not guarantee hyperparameter (HP) transfer across training tokens or bsz.
-To my best knowledge, there is not theory to ensure optimal lr scaling rule for both training horizon and batch size.
+To my best knowledge, there is not theory to ensure optimal lr scaling rule for both training horizon and bsz.
 It's very complicated to predict because every factors like bsz, num tokens, adaptive optimizer's HPs, ... are all correlated.
 So, even though relying on empirical scaling laws may not feel mathematically beautiful, 
 fitting power laws for HPs like lr or bsz given computing budget or training horizon seems reasonable in practice.
@@ -1224,7 +1224,7 @@ Otherwise, predicted optimal values may diverge significantly.
 *Fig. Stepfun Law shows how HP landscape shifts based on min lr and lr schedule.*
 
 
-### <mark style='background-color: #dcffe4'> About Terms like 'Optimal Batch Size' and 'Critical Batch Size'  </mark>
+### <mark style='background-color: #dcffe4'> About Terms like 'Optimal Batch Size' and 'Critical Batch Size' </mark> 
 
 Someone might think like "wtf is `Optimal Batch Size`?".
 Indeed, `bsz should not be tunable parameter for validation performance if you propetly set optimizer parameters like lr, adam beta 1,2 and eps`.
@@ -1273,7 +1273,7 @@ where the model is trained using sampled mini-batches,
 and we usually keep HPs like Adam(W)’s betas, epsilon, and weight decay fixed across different compute budgets,
 and only tune the lr.
 
-In other words, if all hyperparameters were tuned jointly (including Adam(W)’s betas, epsilon, weight decay, and lr),
+In other words, if all HPs were tuned jointly (including Adam(W)’s betas, epsilon, weight decay, and lr),
 then the idea of an “optimal bsz” might be meaningless (see [Simo's note](https://cloneofsimo.notion.site/What-to-do-to-scale-up-09e469d7c3444d6a90305397c38a46f5)),  
 But in practice, as long as we only tune the lr while leaving the rest fixed,
 the notion of an optimal bsz still holds some practical value.
@@ -1281,7 +1281,7 @@ the notion of an optimal bsz still holds some practical value.
 
 ### <mark style='background-color: #dcffe4'> Fitted LR Scheudler for Real World LLMs </mark>
 
-Anyway, we can fit scaling laws for hyperparameters.  
+Anyway, we can fit scaling laws for HPs.  
 Below are actual lr scheduler examples derived from each paper’s HP scaling law.  
 The scheduler includes both the estimated peak lr and training steps (which relate to bsz),  
 so it's helpful to compare how different their scaling laws are.
@@ -1350,7 +1350,7 @@ When we use Adam(W) for all experiments, cbsz is usually determined by data qual
 But if you use better optimizer, e.g. 2nd order optimizer like [MomentUm Orthogonalized by Newton-Schulz (Muon)](https://kellerjordan.github.io/posts/muon/),
 its cbsz is much larger, allowing us to train large transformers more efficiently.
 Here, "more efficiently" assumes an infinite-GPU scenario. 
-For example, when using Adam(W), we can't scale up batch size beyond 10M.
+For example, when using Adam(W), we can't scale up bsz beyond 10M.
 So even with 50,000 GPUs, we can’t finish training faster, because we can’t update model parameters using 20M or 30M tokens.
 But if your cbsz threshold is 20M, you can reach the same validation loss with a 10M Adam(W) baseline twice as fast.
 
@@ -1471,7 +1471,7 @@ This means the model may fail to assign sufficiently high probabilities to targe
             - And, well, *bias* is literally bias. You'd better off tuning your slope (weight), not your bias for model generalization (i guess).
         - However, [Qwen2](https://arxiv.org/abs/2407.10671) uses bias in QKV projection—based on [Su Jianlin's blog post](https://spaces.ac.cn/archives/9577)—claiming it helps generalization for long context.
 
-- **Reconsider your optimizer hyperparameters**
+- **Reconsider your optimizer HPs**
     - The standard setup for training large-scale transformers is often $$(\beta_1, \beta_2, \epsilon) = (0.9, 0.95, 1e{-8})$$,  
       but these defaults are not guaranteed to be optimal.
         - Check [GDM's experiments on epsilon and Adam-atan2](https://arxiv.org/abs/2407.05872)
