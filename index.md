@@ -1401,8 +1401,9 @@ Recently, many researchers have started placing LayerNorms *everywhere*, includi
 ![LN_everywhere_fig1](/assets/img/how_to_scale_cheatsheet/LN_everywhere_fig1.png){: width="100%"}
 *Fig. Source from [Methods of improving LLM training stability](https://arxiv.org/abs/2410.16682v1)*
 
-They seems to work because they makes pre-activation's and gradient range to be reasonable bound.
-(But it could not resolve massive activations as expected. [In Gemma-3, residual post norm and softcapping fails to resolve massive activation norms](https://x.com/SeunghyunSEO7))
+They seem to work because they keep the range of pre-activations and gradients within a reasonable bound.
+(However, they may still fail to address extremely large activations as expected.
+For example, [in Gemma-3, residual post-norm and softcapping fail to suppress excessively large activation norms](https://x.com/SeunghyunSEO7))
 
 One of the earliest and most prominent “put-everywhere norm” techniques, `QK-LayerNorm`, comes from [*Scaling Vision Transformers to 22 Billion Parameters*](https://arxiv.org/abs/2302.05442), where it works well.
 
