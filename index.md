@@ -185,7 +185,7 @@ Because **muP is a method for feature learning in the infinite-width regime**—
 This means muP must ensure maximal learning regardless of width, so we don’t want pre-activations to scale with the width $$n$$.  
 **That’s why muP enables training dynamics to be transferred across different model scales.**
 
-![preactivation_blow_up](/assets/img/how_to_scale_cheatsheet/preactivation_blow_up.jpg){: width="100%"}
+![preactivation_blow_up](/assets/img/how_to_scale_cheatsheet/preactivation_blow_up.png){: width="100%"}
 
 Of course, there are many other parameterizations, such as Standard Parameterization (SP), [Neural Tangent Kernel (NTK)](https://arxiv.org/abs/1806.07572), [Mean Field Theory (MFT)](https://arxiv.org/abs/1902.06015) and muP.
 One might ask, *“Why is muP unique for maximal feature learning?”*  
@@ -198,7 +198,7 @@ If the model trained with NTK parameterization, it wouldn’t work well because 
 That’s the problem and muP doesnt want to allow this.
 
 ![abc_parameterization_fig2](/assets/img/how_to_scale_cheatsheet/abc_parameterization_fig2.jpg){: width="100%"}
-*Fig. only muP is allow stable, non-trivial feature learning. some (NTK) are stuck in kernel regime and some (SP with large lr) diverges.*
+*Fig. The caricature provided in paper might not be intuitive, but what authors want to say is that among other paramterizations, only muP allows stable, non-trivial feature learning. some (NTK) are stuck in kernel regime and another (SP with large lr) diverges.*
 
 For more motivation (even though below example isn’t strictly about parameterization, but i'd like to raise the research question), transformers with pre-norm often show redundancy in deeper layers.
 Post-norm based transformer, which is originally proposed in [Attention Is All You Need](https://arxiv.org/abs/1706.03762) is better than Pre-norm variant at performance, but post-norm does not preserve upstream gradients (identity mapping), so it requires lr warmup stage or other tactics to improve training stability.
