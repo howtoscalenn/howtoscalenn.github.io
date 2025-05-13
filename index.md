@@ -25,7 +25,7 @@ authors:
 toc:
   - name: Motivation
   - name: How to Scale Model Size (Parameterization, ...)
-  - name: How to Scale Dataset Size (HP Scaling Law, ...)
+  - name: How to Scale Dataset Size (HP Scaling Law, (Critical) Batch size...)
   - name: Some Tips for Training Large Transformers
   - name: Outro
   - name: Acknowledgement
@@ -1135,7 +1135,7 @@ I'd like to say there is still many room to do in advanced architectures like Mo
 *Fig. [Source tweet](https://x.com/JingyuanLiu123/status/1919266180407177565)*
 
 
-## <mark style='background-color: #fff5b1'> How to Scale Dataset Size (HP Scaling Law, ...) </mark> {#how-to-scale-dataset-size-hp-scaling-law}
+## <mark style='background-color: #fff5b1'> How to Scale Dataset Size (HP Scaling Law, (Critical) Batch size...) </mark> {#how-to-scale-dataset-size-hp-scaling-law-critical-batch-size}
 
 ### <mark style='background-color: #dcffe4'> HP Scaling Laws </mark>
 
