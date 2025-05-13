@@ -1120,7 +1120,7 @@ Finally, though it seems to allow HP transfer well across various tasks and mode
 ![muP_on_various_tasks_and_archs](/assets/img/how_to_scale_cheatsheet/muP_on_various_tasks_and_archs.png){: width="100%"}
 *Fig. muP on various tasks and architectures such as [Diffusion Transformer (DiT)](https://arxiv.org/abs/2403.03206.pdf), [Diffusion Language Modeling (LLaDa)](https://arxiv.org/abs/2502.09992) and MoE. all credits: [cloneofsimo](https://x.com/cloneofsimo)*
 
-![muP_mamba](/assets/img/how_to_scale_cheatsheet/muP_mamba.png){: width="100%"}
+![mup_mamba](/assets/img/how_to_scale_cheatsheet/mup_mamba.png){: width="100%"}
 *Fig. muP works succesfully on Mamba architectures. [Source](https://github.com/alxndrTL/mamba.py/pull/50#issuecomment-2259888573)*
 
 I'd like to say there is still many room to do in advanced architectures like MoE (even though [MoE for deep neural networks is popularized in 2017 by Noam Shazeer](https://arxiv.org/abs/1701.06538)) or something newly proposed models.
