@@ -1443,7 +1443,7 @@ This means the model may fail to assign sufficiently high probabilities to targe
 
 ## <mark style='background-color: #fff5b1'> Some Tips for Training Large Transformers </mark> {#some-tips-for-training-large-transformers}
 
-*(This subsection might be slightly outdated as it is based on personal notes from early 2024.)*
+*(This subsection might be slightly outdated as it is based on my personal notes from early 2024.)*
 
 - **Use `bfloat16 (bf16)` instead of `float16 (fp16)`**
     - It has the same dynamic range as `float32 (fp32)` and doesn't require dynamic loss scaling (no overhead).
