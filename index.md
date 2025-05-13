@@ -1493,9 +1493,9 @@ This means the model may fail to assign sufficiently high probabilities to targe
             - CPU offloading is not fully overlapped
             - ...
 
-- **Consider QK LayerNorm**
-    - Enlarge lr basin
+- **About QK LayerNorm**
     - I'd like to say `"Don't get too caught up in finding completely optimal HPs"`. IMO, it's ok to use near-optimal HPs, so youd better use your resource to data quality.
+    - As we discussed above, it's not silver bullet especially in long context regime.
 
 Let me tell about "why should we care MFU" little bit.
 It is noteworthy that the one of the most important thing when scale up is `"if your method (new arch, new learning algorithm) is scalable or not"`.
