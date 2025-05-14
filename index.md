@@ -212,7 +212,7 @@ Many researchers studied normalization module or parameterization like [residual
 ![pangu_ultra_depth_scaled_sandwich_norm_fig](/assets/img/how_to_scale_cheatsheet/pangu_ultra_depth_scaled_sandwich_norm_fig.png){: width="100%"}
 *Fig. depth scaled sandwich norm from [Pangu Ultra](https://arxiv.org/abs/2504.07866)*
 
-IMO, i think these examples are related to parameterization too.
+IMO, i believe these examples are related to parameterization too.
 
 In TP-5, the authors show that muP not only transfers optimal lr across width,  
 but also achieves better performance overall in Language Modeling (LM) task (GPT-3 setup).
