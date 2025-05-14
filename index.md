@@ -63,9 +63,8 @@ and the post theme is based on [diffusionflow.github.io](https://diffusionflow.g
 
 ## <mark style='background-color: #fff5b1'> Motivation </mark> {#motivation}
 
-`"how to scale"` in this post is "how we should set the `initialization standard deviation (init std), learning rate (lr), and batch size (bsz) and other hyperparameters (HPs)` as model size (including both width and depth) and dataset size grow".
-It is indeed true that as you scale up computing budget, $$C=6ND$$ (where $$N$$ is model size and $$D$$ is dataset size), your model tends to perform better.
-
+`"how to scale"` in this post means "how we should set the `initialization standard deviation (init std), learning rate (lr), and batch size (bsz) and other hyperparameters (HPs)` as model size (including both width and depth) and dataset size grow".
+It is so true that as you scale up computing budget, $$C=6ND$$ (where $$N$$ is model size and $$D$$ is dataset size), your model tends to perform better.
 
 $$
 \begin{aligned}
