@@ -1144,7 +1144,7 @@ To my best knowledge, there is not theory to ensure optimal lr scaling rule for 
 It's very complicated to predict because every factors like bsz, num tokens, adaptive optimizer's HPs, ... are all correlated.
 So, even though relying on empirical scaling laws may not feel mathematically beautiful, 
 fitting power laws for HPs like lr or bsz given computing budget or training horizon seems reasonable in practice.
-Because `scaling is universal behavior`.
+Because `Scaling Law is universal behavior`.
 
 To the best of my knowledge, DeepSeek was the first to empirically fit HP scaling laws for large-scale neural networks.  
 In [DeepSeek LLM (DS-V1)](https://arxiv.org/abs/2401.02954), they fit lr and bsz with respect to the compute budget $$C$$:
