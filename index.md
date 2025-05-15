@@ -142,7 +142,7 @@ it allows us to avoid extensive grid searches over HPs for a given compute budge
 But muP is fundamentally about ensuring that `every layer learns features maximally at each optimization step`, by assigning per-parameter HPs (lr, init std, etc.), `even as the network’s width goes to infinity`.
 
 ![origin_of_muP](/assets/img/how_to_scale_cheatsheet/origin_of_muP.png){: width="100%"}
-*Fig. [Openreview of TP-5](https://openreview.net/forum?id=Bx6qKuBM2AD). Greg Yang explain 'muP is not only for HP transfer'*
+*Fig. [Openreview of TP-V](https://openreview.net/forum?id=Bx6qKuBM2AD). Greg Yang explain 'muP is not only for HP transfer'*
 
 So, muP is designed to enable **maximal feature learning**, but Why SP is not enough? 
 In SP, we often find that `some weights receive disproportionately large gradients`, while `others receive gradients that are too small`.  
@@ -214,7 +214,7 @@ Many researchers studied normalization module or parameterization like [residual
 
 IMO, i believe these examples are related to parameterization too.
 
-In TP-5, the authors show that muP not only transfers optimal lr across width,  
+In TP-V, the authors show that muP not only transfers optimal lr across width,  
 but also achieves better performance overall in Language Modeling (LM) task (GPT-3 setup).
 
 ![tp5_paper_fig1](/assets/img/how_to_scale_cheatsheet/tp5_paper_fig1.png){: width="80%"}
@@ -522,7 +522,7 @@ z_{t+1}
 \end{aligned}
 $$
 
-Actually, it's more than CLT, LLN and dot product. we should consider full optimization trajectory with momentum and other factors. and bsz is greater than one in real world scenario where gradient is averaged by multiple rank 1 gradient and things go wild. if you want to see full derivation, i recommend you to read [TP-IVb](https://arxiv.org/abs/2308.01814), TP-5 or [A Spectral Condition for Feature Learning](https://arxiv.org/abs/2310.17813).
+Actually, it's more than CLT, LLN and dot product. we should consider full optimization trajectory with momentum and other factors. and bsz is greater than one in real world scenario where gradient is averaged by multiple rank 1 gradient and things go wild. if you want to see full derivation, i recommend you to read [TP-IVb](https://arxiv.org/abs/2308.01814), TP-V or [A Spectral Condition for Feature Learning](https://arxiv.org/abs/2310.17813).
 
 Anyway, it's all about CLT, LLN and dot product intuitively.
 Choose LLN or CLT based on whether the vectors are correlated or not.
@@ -538,6 +538,7 @@ Below figure is called coordinate check where coordinate means each element valu
 ![tp5_paper_fig5](/assets/img/how_to_scale_cheatsheet/tp5_paper_fig5.png){: width="100%"}
 
 And now, one can accept `it ensures maximal feature learning for every layers without instability, and all init std and update quantity is invariant to width n, so optimal training behavior (optimal lr) will be transferred`.
+(While TP-V explains hyperparameter transferability from first principles, you can check [Why do Learning Rates Transfer? Reconciling Optimization and Scaling Limits for Deep Learning](https://arxiv.org/abs/2402.17457v1) for another perspective.)
 
 Not that, however, `not all parameters are same`, 
 which means that $$n \times n$$ hidden matrix (we call this matrix-like tensor) has two infinite dimensions.
@@ -551,7 +552,7 @@ and there is `only one infinite dimension`.
 So it behaves different and this is why we have to apply separate rule and this is the reason why muP implementation table has 3 category (hidden, embedding, unembedding).
 
 ![tp5_paper_table_3_brief](/assets/img/how_to_scale_cheatsheet/tp5_paper_table_3_brief.png){: width="100%"}
-*Fig. [Openreview of TP-5](https://openreview.net/forum?id=Bx6qKuBM2AD). Greg Yang explain 'muP is not only for HP transfer'*
+*Fig. [Openreview of TP-V](https://openreview.net/forum?id=Bx6qKuBM2AD). Greg Yang explain 'muP is not only for HP transfer'*
 
 Again, to achieve both 'training stability', 'maximal feature learning', and 'non-triviality',
 we should keep below two things in below three desideratum.
@@ -625,7 +626,7 @@ Now, to further understanding and implementing muP with flexiblilty,
 we're gonna discuss `abc-parameterization symmetry`.
 abc-parameterization symmetry means, if you properly set this a,b,c (multiplier, std, base lr each), 
 NN's fwd, bwd will stay same.
-So, this is the reason why there are 3 different (but same) tables in TP-5.
+So, this is the reason why there are 3 different (but same) tables in TP-V.
 
 ![abc_param](/assets/img/how_to_scale_cheatsheet/abc_param.png){: width="100%"}
 *Fig.*
@@ -892,7 +893,7 @@ And conventional rule for bsz-lr scaling rule is sqrt(n).
 ![power_scheduler_paper_fig4](/assets/img/how_to_scale_cheatsheet/power_scheduler_paper_fig2.png){: width="100%"}
 *Fig. Soruce from [Power Scheduler: A Batch Size and Token Number Agnostic Learning Rate Scheduler](https://arxiv.org/abs/2408.13359)*
 
-In the TP-5 paper, the authors show that lr can be transferred well across bsz,
+In the TP-V paper, the authors show that lr can be transferred well across bsz,
 
 ![tp5_paper_fig19](/assets/img/how_to_scale_cheatsheet/tp5_paper_fig19.png){: width="100%"}
 *Fig.*
@@ -901,7 +902,7 @@ but you should not overlook they use "same training steps" for this experiment.
 That means they used more FLOPs for increased bsz setup and they don't need to care bout bsz-training step tradeoff.
 
 ![tp5_batch_size_footprint](/assets/img/how_to_scale_cheatsheet/tp5_batch_size_footprint.png){: width="100%"}
-*Fig. Source from TP-5*
+*Fig. Source from TP-V*
 
 So, if we want to scale *both* model size *and* training horizon (tokens, bsz),  
 we need to understand optimal lr scaling for all three dimensions.
@@ -930,7 +931,7 @@ This table is heavily inspired by [‘What to do to scale up?’ from Simo Ryu](
 ![unit_mup_paper_table2_mup_only](/assets/img/how_to_scale_cheatsheet/unit_mup_paper_table2_mup_only.png){: width="100%"}
 *Fig. Table 2 from [unit-muP](https://arxiv.org/abs/2407.17465). it is based on Table 8 from TP-V but also reflects depth scaling from [TP-VI](https://arxiv.org/abs/2310.02244) (see residual branch's multiplier)*
 
-- `width`: Width refers to the hidden size (or head dimension) of a neural network (e.g., in Transformers). For small-scale proxy (base) models, the shape of a specific layer’s weight matrix is given by $$ W_l \in \mathbb{R}^{\text{fan-in}_\text{base} \times \text{fan-in}_\text{base}} $$. In TP-5, Tables 3, 8, and 9 describe parameterization in terms of `fan_in` and `fan_out`, corresponding to input and output feature dimensions. In this table, we define $$ \tilde{n} = \text{fan-in} \cdot \frac{1}{\text{fan-in}_\text{base}} $$. If $$\text{fan-in}_\text{base} = 1$$, it recovers to Table 8. For example, if $$\sigma = 1/\sqrt{1024} \approx 0.031$$, then init std becomes $$1/\text{fan-in}$$.
+- `width`: Width refers to the hidden size (or head dimension) of a neural network (e.g., in Transformers). For small-scale proxy (base) models, the shape of a specific layer’s weight matrix is given by $$ W_l \in \mathbb{R}^{\text{fan-in}_\text{base} \times \text{fan-in}_\text{base}} $$. In TP-V, Tables 3, 8, and 9 describe parameterization in terms of `fan_in` and `fan_out`, corresponding to input and output feature dimensions. In this table, we define $$ \tilde{n} = \text{fan-in} \cdot \frac{1}{\text{fan-in}_\text{base}} $$. If $$\text{fan-in}_\text{base} = 1$$, it recovers to Table 8. For example, if $$\sigma = 1/\sqrt{1024} \approx 0.031$$, then init std becomes $$1/\text{fan-in}$$.
   - e.g.: $$\color{red}{\tilde{n} = 100}$$
 - `multiplier`
     - Note that there are two multipliers: one for width scaling and one for HPs.  
