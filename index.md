@@ -523,6 +523,7 @@ z_{t+1}
 $$
 
 Actually, it's more than CLT, LLN and dot product. we should consider full optimization trajectory with momentum and other factors. and bsz is greater than one in real world scenario where gradient is averaged by multiple rank 1 gradient and things go wild. if you want to see full derivation, i recommend you to read [TP-IVb](https://arxiv.org/abs/2308.01814), TP-V or [A Spectral Condition for Feature Learning](https://arxiv.org/abs/2310.17813).
+(Though i derive muP following original TP with LLN, CLT, I highly recommend Spectral Condition paper by Greg Yang, James B. Simonand Jeremy Berstein who is co-creater of [Muon Optimizer](https://kellerjordan.github.io/posts/muon/))
 
 Anyway, it's all about CLT, LLN and dot product intuitively.
 Choose LLN or CLT based on whether the vectors are correlated or not.
@@ -916,6 +917,11 @@ It assumes that model size growth is based only on width (hidden size or embeddi
 Also, as discussed earlier, some scaling rules (like LR vs. bsz and training horizon) are based on my interpretation and findings from several papers.  
 This table is heavily inspired by [‘What to do to scale up?’ from Simo Ryu](https://cloneofsimo.notion.site/What-to-do-to-scale-up-09e469d7c3444d6a90305397c38a46f5).
 
+Note that *this table is not optimal*.
+*it is only an example guideline for motivation*.
+Some parts may be incorrect, so you should determine each component’s scaling factor, since optimization hyperparameters (such as beta 1, 2, weight decay, lr, and bsz) are intricately correlated and few of them are discovered afaik.
+you still theoretically or empirically find their correlation.
+
 |hparams|embedding|hidden|residual_out|unembedding (readout)|
 |---|---|---|---|---|
 |init_std (b) | $$\sigma_\text{embed}$$ | $$\sigma_\text{hidden} \cdot (\color{red}{\tilde{n}})^{-0.5} $$ | $$\sigma_\text{res-out} \cdot (\color{red}{\tilde{n}})^{-0.5} \cdot (2 n_\text{layers})^{-0.5}$$ | $$\sigma_\text{un-embed}$$ |
@@ -923,7 +929,7 @@ This table is heavily inspired by [‘What to do to scale up?’ from Simo Ryu](
 |adamw lr (c) | $$\eta_{\text{embed}} \cdot (\color{green}{\tilde{b}})^{0.5} \cdot {(\color{blue}{\tilde{d}})^{\alpha_{\text{data}}}}$$ | $$ \eta_{\text{hidden}} \cdot (\color{red}{\tilde{n}})^{-1} \cdot (\color{green}{\tilde{b}})^{0.5} \cdot {(\color{blue}{\tilde{d}})^{\alpha_{\text{data}}}}$$  | $$\eta_{\text{res-out}} \cdot (\color{red}{\tilde{n}})^{-1} \cdot (\color{green}{\tilde{b}})^{0.5} {(\color{blue}{\tilde{d}})^{\alpha_{\text{data}}}}$$ | $$\eta_{\text{un-embed}} \cdot (\color{green}{\tilde{b}})^{0.5} {(\color{blue}{\tilde{d}})^{\alpha_{\text{data}}}}$$ |
 |adamw moment| $$(1-\color{green}{\tilde{b}}(1-\beta_1),\\1-\color{green}{\tilde{b}}(1-\beta_2))$$ | $$(1-\color{green}{\tilde{b}}(1-\beta_1),\\1-\color{green}{\tilde{b}}(1-\beta_2))$$ | $$(1-\color{green}{\tilde{b}}(1-\beta_1),\\1-\color{green}{\tilde{b}}(1-\beta_2))$$ | $$(1-\color{green}{\tilde{b}}(1-\beta_1),\\1-\color{green}{\tilde{b}}(1-\beta_2))$$ |
 |adamw epsilon| $$\epsilon \cdot (\color{green}{\tilde{b}})^{-0.5}$$ | $$\epsilon \cdot (\color{green}{\tilde{b}})^{-0.5}$$ | $$\epsilon \cdot (\color{green}{\tilde{b}})^{-0.5}$$ | $$\epsilon \cdot (\color{green}{\tilde{b}})^{-0.5}$$ |
-|adamw weight_decay| $$\lambda$$ | $$\lambda$$ | $$\lambda$$ | $$\lambda$$ |
+|adamw weight_decay| $$\lambda \cdot (\tilde{b}^?) \cdot (\tilde{d}^?) $$ | $$\lambda \cdot (\tilde{n}) \cdot (\tilde{b}^?) \cdot (\tilde{d}^?)$$ | $$\lambda \cdot (\tilde{n}) \cdot (\tilde{b}^?) \cdot (\tilde{d}^?)$$ | $$\lambda \cdot (\tilde{b}^?) \cdot (\tilde{d}^?)$$ |
 
 ![tp5_paper_table_8_brief](/assets/img/how_to_scale_cheatsheet/tp5_paper_table_8_brief.png){: width="100%"}
 *Fig. Table 8 from [TP-V](https://arxiv.org/abs/2203.03466)*
@@ -931,7 +937,7 @@ This table is heavily inspired by [‘What to do to scale up?’ from Simo Ryu](
 ![unit_mup_paper_table2_mup_only](/assets/img/how_to_scale_cheatsheet/unit_mup_paper_table2_mup_only.png){: width="100%"}
 *Fig. Table 2 from [unit-muP](https://arxiv.org/abs/2407.17465). it is based on Table 8 from TP-V but also reflects depth scaling from [TP-VI](https://arxiv.org/abs/2310.02244) (see residual branch's multiplier)*
 
-- `width`: Width refers to the hidden size (or head dimension) of a neural network (e.g., in Transformers). For small-scale proxy (base) models, the shape of a specific layer’s weight matrix is given by $$ W_l \in \mathbb{R}^{\text{fan-in}_\text{base} \times \text{fan-in}_\text{base}} $$. In TP-V, Tables 3, 8, and 9 describe parameterization in terms of `fan_in` and `fan_out`, corresponding to input and output feature dimensions. In this table, we define $$ \tilde{n} = \text{fan-in} \cdot \frac{1}{\text{fan-in}_\text{base}} $$. If $$\text{fan-in}_\text{base} = 1$$, it recovers to Table 8. For example, if $$\sigma = 1/\sqrt{1024} \approx 0.031$$, then init std becomes $$1/\text{fan-in}$$.
+- `width`: Width refers to the hidden size (or head dimension) of a neural network (e.g., in Transformers). For small-scale proxy (base) models, the shape of a specific layer’s weight matrix is given by $$ W_l \in \mathbb{R}^{\text{fan-in}_\text{base} \times \text{fan-in}_\text{base}} $$. In TP-5, Tables 3, 8, and 9 describe parameterization in terms of `fan_in` and `fan_out`, corresponding to input and output feature dimensions. In this table, we define $$ \tilde{n} = \text{fan-in} \cdot \frac{1}{\text{fan-in}_\text{base}} $$. If $$\text{fan-in}_\text{base} = 1$$, it recovers to Table 8. For example, if $$\sigma = 1/\sqrt{1024} \approx 0.031$$, then init std becomes $$1/\text{fan-in}$$.
   - e.g.: $$\color{red}{\tilde{n} = 100}$$
 - `multiplier`
     - Note that there are two multipliers: one for width scaling and one for HPs.  
@@ -999,6 +1005,51 @@ and param norm growth never recovered even lr keep decreased by scheduler.
 ![muP_independent_wd_fig2](/assets/img/how_to_scale_cheatsheet/muP_independent_wd_fig2.png){: width="100%"}
 
 So I strongly recommend using `truly independent weight decay`, not the PyTorch default.
+
++Updated) following [Wang et al. (How to set AdamW's weight decay as you scale model and dataset size)](https://arxiv.org/abs/2405.13698), we can treat AdamW update rule as Exponential Moving Average (EMA) and adjust weight decay.
+(by introducing weight decay update rule, above scaling table is broken furhter, so don't trust itself too much. this is for motivation)
+
+$$
+\theta_t 
+= \theta_{t-1} 
+- \underbrace{\eta_0 \color{red}{\gamma_t} \frac{\hat{m_t}}{\sqrt{\hat{v_t}} + \epsilon}}_{\text{adam update quantity}}
+- \underbrace{\color{red}{\gamma_t} \lambda \theta_{t-1}}_{\text{weight decay}}
+$$
+
+$$
+\theta_t 
+= (1 - \underbrace{\eta_t \lambda}_{\alpha}) \theta_{t-1} 
+- \eta_t \underbrace{(\frac{\hat{m_t}}{\sqrt{\hat{v_t}} + \epsilon})}_{\text{adam update quantity}}
+$$
+
+The above formula assumes PyTorch’s default weight decay rule, where it is multiplied by the base learning rate (not fully decoupled like i said).
+The key metric that authors use is the epoch time scale, $$\tau_{epoch} = \tau_{iter}/M = 1/(M \cdot \alpha) = 1/(M \cdot \eta \color{blue}{\lambda})$$ where $$M$$ is the number of optimizatio step.
+It tells us how many epochs of past updates AdamW’s EMA averages over and iter time scale corresponds to the window size in EMA, indicating how much weight is given to recent updates in the average (the larger the time scale, the more dominant the current updates become).
+
+And authors claim epoch time scale should remain constant regardless of model size or dataset scale and they show it's right.
+So as we scale up dataset size, we should scale down weight decay.
+
+![wang_et_al_paper_fig2](/assets/img/how_to_scale_cheatsheet/wang_et_al_paper_fig2.png){: width="80%"}
+
+Intuitively, For example, if we use 1M sample for 1 epoch and bsz 100, we update param 10000 times.
+but if we train model with 100 times larger samples for each epoch, we will update parameter 100 times more,
+and for HP transferability (similar training dynamics) it seems to make sense to increase window size.
+and also, step size $$M$$ is related to bsz, because if we increase bsz, $$M$$ will be decreased, so we should increase weight decay to compensate this.
+
+And for model size scale up, we know muP suggest $$1/n$$ lr scaling rule for hidden matrix, 
+so, we should scale weight decay like $$n \cdot \lambda$$ to fix epoch time scale.
+
+![wang_et_al_paper_fig3](/assets/img/how_to_scale_cheatsheet/wang_et_al_paper_fig3.png)
+
+At this point, *we don't need to scale lr like $$\sqrt{bsz}$$ for adamw as we increase bsz*, rather we can conclude it could be better to control weight decay!
+Originally, $$\tau_{iter} = 1/(\eta \lambda)$$ is $$1/\lambda$$ if it's *truly decoupled weight decay*,
+so in this case, we don't need to scale weight decay according to model size.
+I guess this is another data point for why *truly decoupled weight decay* shows better transferability and performance.
+
+[Crebrase Team's Power lines](https://arxiv.org/pdf/2505.13738) further investigate this and for largely overtrained regime, epoch time scale would not be fixed but decreased exponentially following power laws.
+
+![power_lines_paper_adamw_as_ema2](/assets/img/how_to_scale_cheatsheet/power_lines_paper_adamw_as_ema2.png)
+
 
 
 ### <mark style='background-color: #dcffe4'> Why SP can't admit feature learning or HP transfer and is it true? </mark>
