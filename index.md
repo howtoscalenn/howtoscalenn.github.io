@@ -1047,7 +1047,7 @@ I guess this is another data point for why *truly decoupled weight decay* shows 
 
 [Crebrase Team's Power lines](https://arxiv.org/pdf/2505.13738) further investigate this and for largely overtrained regime, epoch time scale would not be fixed but decreased exponentially following power laws.
 
-![power_lines_paper_adamw_as_ema2](/assets/img/how_to_scale_cheatsheet/power_lines_paper_adamw_as_ema2.png)
+![power_lines_paper_adamw_as_ema2](/assets/img/how_to_scale_cheatsheet/power_lines_paper_adamw_as_ema2.png){: width="100%"}
 
 
 
