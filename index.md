@@ -986,7 +986,6 @@ you still theoretically or empirically find their correlation.
   Use $$(\beta_1, \beta_2) = (0.9, 0.95)$$ and $$\epsilon = 1\text{e-}8$$—standard for large-scale transformers.
   - If scaling bsz with compute budget, [some suggest using larger $$\beta$$ for smaller batches](https://www.cs.princeton.edu/~smalladi/blog/2024/01/22/SDEs-ScalingRules/).
   - For Weight Decay (WD), $$\lambda$$, you can diable this for small scale proxy, and re-actiavte in target scale.
-  - It is well known that 1e-1 for pytorch default.
   - but be careful it depends on what framework you use. for `tensorflow adamw` or `truly decoupled adamw` defualt is 1e-4 because pytorch default multiply WD value by lr.
     - recently proposed papers related to muP claims truly decoupled adamw fixes HP transfer stability
       - it's easy to implement by setting `weight_decay` as `weight_decay / group['lr']`
@@ -1039,7 +1038,7 @@ and also, step size $$M$$ is related to bsz, because if we increase bsz, $$M$$ w
 And for model size scale up, we know muP suggest $$1/n$$ lr scaling rule for hidden matrix, 
 so, we should scale weight decay like $$n \cdot \lambda$$ to fix epoch time scale.
 
-![wang_et_al_paper_fig3](/assets/img/how_to_scale_cheatsheet/wang_et_al_paper_fig3.png)
+![wang_et_al_paper_fig3](/assets/img/how_to_scale_cheatsheet/wang_et_al_paper_fig3.png){: width="100%"}
 
 At this point, *we don't need to scale lr like $$\sqrt{bsz}$$ for adamw as we increase bsz*, rather we can conclude it could be better to control weight decay!
 Originally, $$\tau_{iter} = 1/(\eta \lambda)$$ is $$1/\lambda$$ if it's *truly decoupled weight decay*,
