@@ -117,9 +117,9 @@ What really matters isn't something like:
 Rather, it's:  
 > “The optimal lr at 40M is 0.00195, so we should halve the lr when we double the width (hidden size).”
 
-If we define this scaling rule properly, we can efficiently tune larger models—and match scaling laws—at relatively low cost.
+If we define this scaling rule properly, we can efficiently tune larger models, and match scaling laws, at relatively low cost.
 
-The authors of [Tensor Program (TP)-V, aka muTransfer](https://arxiv.org/abs/2203.03466)—[Greg Yang](https://thegregyang.com/) and [Edward Hu](https://edwardjhu.com/)—were part of the early OpenAI–Microsoft collaboration. [Andrew Carr](https://andrewnc.github.io/), formerly at OpenAI, confirmed that muP was likely used in training GPT.
+The authors of [Tensor Program (TP)-V, aka muTransfer](https://arxiv.org/abs/2203.03466), [Greg Yang](https://thegregyang.com/) and [Edward Hu](https://edwardjhu.com/), were part of the early OpenAI–Microsoft collaboration. [Andrew Carr](https://andrewnc.github.io/), formerly at OpenAI, confirmed that muP was likely used in training GPT.
 (GPT-4 technical report also refers to TP-V)
 
 ![andrew_mup_confirm_fig1](/assets/img/how_to_scale_cheatsheet/andrew_mup_confirm_fig1.png){: width="100%"}
@@ -164,7 +164,7 @@ Recently proposed advanced optimizers like [Muon](https://kellerjordan.github.io
 ![scion_lr_transferrability](/assets/img/how_to_scale_cheatsheet/scion_lr_transferrability.png){: width="100%"}
 *Fig. Source from [Training Deep Learning Models with Norm-Constrained LMOs](https://arxiv.org/abs/2502.07529). lr can be transferred with SCION optimizer*
 
-**IMO**, most optimization and training techniques share the same motivation: to **stabilize**, **balance**, and **improve training dynamics**—seen from a unified perspective.
+**IMO**, most optimization and training techniques share the same motivation: to **stabilize**, **balance**, and **improve training dynamics**, seen from a unified perspective.
 
 Anyway, muP is based on `three core desiderata`: 
 
@@ -180,7 +180,7 @@ By solving for these desiderata, you get a parameterization that not only encour
 ![abc_parameterization_fig3](/assets/img/how_to_scale_cheatsheet/abc_parameterization_fig3.jpg){: width="100%"}
 
 Why does training stability matter?  
-Because **muP is a method for feature learning in the infinite-width regime**—where hidden sizes grow larger and larger (e.g., 1024, 4096, ..., 40k).  
+Because **muP is a method for feature learning in the infinite-width regime**, where hidden sizes grow larger and larger (e.g., 1024, 4096, ..., 40k).  
 This means muP must ensure maximal learning regardless of width, so we don’t want pre-activations to scale with the width $$n$$.  
 **That’s why muP enables training dynamics to be transferred across different model scales.**
 
@@ -188,7 +188,7 @@ This means muP must ensure maximal learning regardless of width, so we don’t w
 
 Of course, there are many other parameterizations, such as Standard Parameterization (SP), [Neural Tangent Kernel (NTK)](https://arxiv.org/abs/1806.07572), [Mean Field Theory (MFT)](https://arxiv.org/abs/1902.06015) and muP.
 One might ask, *“Why is muP unique for maximal feature learning?”*  
-I won’t go into full detail here—check the original paper—but consider this:  
+I won’t go into full detail here, check the original paper, but consider this:  
 
 In the kernel regime (e.g., NTK), models are effectively frozen in feature space.  
 So even if your NTK-parameterized BERT is pretrained successfully, its learned representation is weak.  
@@ -201,7 +201,7 @@ That’s the problem and muP doesnt want to allow this.
 
 For more motivation (even though below example isn’t strictly about parameterization, but i'd like to raise the research question), transformers with pre-norm often show redundancy in deeper layers.
 Post-norm based transformer, which is originally proposed in [Attention Is All You Need](https://arxiv.org/abs/1706.03762) is better than Pre-norm variant at performance, but post-norm does not preserve upstream gradients (identity mapping), so it requires lr warmup stage or other tactics to improve training stability.
-However, for pre-norm it makes harder for the residual features in deeper layers to contribute to the model’s main residual stream—a phenomenon known as 'representation collapse' as a side-effect. 
+However, for pre-norm it makes harder for the residual features in deeper layers to contribute to the model’s main residual stream, a phenomenon known as 'representation collapse' as a side-effect. 
 
 So in this case, feature learning across layers can become uneven, and it leads to `waste of compute`.
 
@@ -391,7 +391,7 @@ $$
 \quad\text{as } n \rightarrow \infty
 $$
 
-Here, each sample must be drawn independently from the same distribution—the “independent and identically distributed (i.i.d.)” assumption where it's e.g. if you flip a fair coin 1,000 times, the outcome of the 550th flip does not depend on the results of the first 549 flips, and each flip follows the same $$\mathrm{Bernoulli}(1/2)$$ distribution.
+Here, each sample must be drawn independently from the same distribution, the “independent and identically distributed (i.i.d.)” assumption where it's e.g. if you flip a fair coin 1,000 times, the outcome of the 550th flip does not depend on the results of the first 549 flips, and each flip follows the same $$\mathrm{Bernoulli}(1/2)$$ distribution.
 
 The [Central Limit Theorem (CLT)](https://en.wikipedia.org/wiki/Central_limit_theorem) is another convergence theorem for i.i.d. samples. It states that, for sufficiently large $$n$$, the distribution of the sample mean of $$n$$ draws approaches a normal distribution, regardless of the original distribution’s shape. Concretely, if you draw $$n$$ samples from $$\mathcal{N}(\mu,\sigma^2)$$, then the distribution of their mean,
 
@@ -854,7 +854,7 @@ tensor(2.5274e-05, grad_fn=<MeanBackward0>) tensor(-0.0009, grad_fn=<MeanBackwar
 
 ### <mark style='background-color: #dcffe4'> muP is not Silver Bullet (across the batch size and training horizon) </mark>
 
-Now we know how to scale up model size — we know how to transfer optimal HPs from small-scale proxy experiments.  
+Now we know how to scale up model size ,  we know how to transfer optimal HPs from small-scale proxy experiments.  
 However, even though muP is theoretically well-defined,  
 `it does not guarantee HP transfer across training tokens or batch size`.  
 Especially, the fact that 'muP does not ensure HP transfer across training horizon' is not widely spread.
@@ -879,7 +879,7 @@ This leads to a `left-shift trend in the optimal lr curve even though you use mu
 Now consider bsz.
 
 It’s common to increase the bsz when training larger models to achieve better training efficiency (throughput).  
-(As long as you don’t cross the `critical bsz` — we’ll discuss that later.)
+(As long as you don’t cross the `critical bsz` ,  we’ll discuss that later.)
 
 But increasing bsz reduces training steps.  
 So we can think like
@@ -949,7 +949,7 @@ you still theoretically or empirically find their correlation.
   - It's well-known that residual outputs should be scaled by $$ \frac{1}{\sqrt{2L}} $$ where $$L$$ is the number of layers (depth). This is because residual blocks add the original input twice per block, resulting in $$2L$$ additions. This scaling is compatible with muP and is discussed in TP-6.
 - `attention logit scaling`
   - Scaled Dot-Product Attention (SDPA) is also a dot product. In muP, the scaling should be $$d_\text{head}$$ instead of $$\sqrt{d_\text{head}}$$ in the $$QK^T / \text{scale}$$ term. This is because $$q$$ and $$k$$ become correlated after training begins, so scaling should follow the Law of Large Numbers (LLN). Attention operators may have an `attn_multiplier`, but we typically set it to 1.0.
-    - Notably, the original *Attention is All You Need* paper uses $$\sqrt{d_\text{head}}$$ because $$q$$ and $$k$$ are i.i.d. at initialization—this is SP behavior, not muP (LLN vs. CLT).
+    - Notably, the original *Attention is All You Need* paper uses $$\sqrt{d_\text{head}}$$ because $$q$$ and $$k$$ are i.i.d. at initialization, this is SP behavior, not muP (LLN vs. CLT).
 
 ![attention_is_all_you_need_sdpa_ref](/assets/img/how_to_scale_cheatsheet/attention_is_all_you_need_sdpa_ref.png){: width="100%"}
 *Fig. I also overlooked this note from [Attention Is All You Need](https://arxiv.org/abs/1706.03762) paper. they designed transformer modules in literally every point of views (stability, parallelizability, ...).*
@@ -983,7 +983,7 @@ you still theoretically or empirically find their correlation.
   - LM head (readout)
 
 - Other Optimizer HPs:  
-  Use $$(\beta_1, \beta_2) = (0.9, 0.95)$$ and $$\epsilon = 1\text{e-}8$$—standard for large-scale transformers.
+  Use $$(\beta_1, \beta_2) = (0.9, 0.95)$$ and $$\epsilon = 1\text{e-}8$$, standard for large-scale transformers.
   - If scaling bsz with compute budget, [some suggest using larger $$\beta$$ for smaller batches](https://www.cs.princeton.edu/~smalladi/blog/2024/01/22/SDEs-ScalingRules/).
   - For Weight Decay (WD), $$\lambda$$, you can diable this for small scale proxy, and re-actiavte in target scale.
   - but be careful it depends on what framework you use. for `tensorflow adamw` or `truly decoupled adamw` defualt is 1e-4 because pytorch default multiply WD value by lr.
@@ -1068,7 +1068,7 @@ and yet it successfully transfers optimal lr across width.
 *Fig. [Small-scale proxies for large-scale Transformer training instabilities](https://arxiv.org/abs/2309.14322)*
 
 Moreover, GDM shows that every parameterization can admit HP transfer with the right adjustments,  
-and even reports that SP—with a novel per-layer lr schedule outperforms muP in some cases.  
+and even reports that SP, with a novel per-layer lr schedule outperforms muP in some cases.  
 (Though, whether SP + per-layer LR can still be considered "SP" is debatable.)
 
 ![scaling_exponent_paper_quote_for_hp_transfer](/assets/img/how_to_scale_cheatsheet/scaling_exponent_paper_quote_for_hp_transfer.png){: width="75%"}
@@ -1098,14 +1098,14 @@ while keeping update magnitudes consistent across all matrices.
 *Fig.*
 
 In [PaLM](https://arxiv.org/abs/2204.02311), researchers uses different parameterization.
-(I call this parameterization—not just initialization—because they adopt *Adafactor* instead of Adam, allowing per-layer lr, which is quite similar in spirit to muP.)
+(I call this parameterization, not just initialization, because they adopt *Adafactor* instead of Adam, allowing per-layer lr, which is quite similar in spirit to muP.)
 They keep tied embeddings, set init std to 1, and scale the pre-softmax logits by $$1/\sqrt{n}$$, where $$n$$ is equivalent to $$d_{\text{model}}$$.
 
 ![palm_training_setup_details](/assets/img/how_to_scale_cheatsheet/palm_training_setup_details.png){: width="100%"}
 *Fig.*
 
 As the text states, LayerNorm modules normalize their inputs, which means the variance of the outputs is 1.  
-So it’s reasonable to initialize the embedding matrix with standard deviation 1—this is consistent with muP.  
+So it’s reasonable to initialize the embedding matrix with standard deviation 1, this is consistent with muP.  
 However, the $$1/\sqrt{n}$$ logit scaling does not match the $$1/n$$ scaling used in muP,  
 but i believe perhaps *Adafactor* compensates for this mismatch by adapting the update scale.
 
@@ -1309,7 +1309,7 @@ things become a bit more complicated.
 
 So in most of cases,
 it's safe to use smaller enough bsz unless you hurt MFU because there exists cbsz (ofc you should tune HPs for optimizer well). 
-(In the Large Language Model (LLM) era, the concept of overfitting barely exists— we rarely apply dropout or similar regularization, and the generalization gap is often not a major concern.)
+(In the Large Language Model (LLM) era, the concept of overfitting barely exists,  we rarely apply dropout or similar regularization, and the generalization gap is often not a major concern.)
 
 However, in real-world settings, there does exist an “optimal bsz”
 
@@ -1417,7 +1417,7 @@ In [Dion paper](https://arxiv.org/abs/2504.05295), they show that their new opti
 
 Here are some reference bsz and lr used for LLM pre-training.  
 Note that I excluded papers that don’t explore or discuss scaling rules (at least in the paper).  
-For example, LLaMA 1, 2, and 3 all use the same bsz and lr, even though the number of training tokens varies from 2T to 15T—  
+For example, LLaMA 1, 2, and 3 all use the same bsz and lr, even though the number of training tokens varies from 2T to 15T,   
 and to me, that doesn’t make much sense.  
 So I decided to exclude them from this list.
 
@@ -1460,7 +1460,7 @@ One of the earliest and most prominent “put-everywhere norm” techniques, `QK
 ![scaling_vit_22b_paper_fig2](/assets/img/how_to_scale_cheatsheet/scaling_vit_22b_paper_fig2.png){: width="100%"}
 
 The key observation of this paper is that the L2 norm of logits before softmax (before Scaled Dot Product Attention (SDPA) and output head) is critical to prevent loss divergence.  
-So they normalize some tensors to ensure logits don’t blow up—and it worked.
+So they normalize some tensors to ensure logits don’t blow up, and it worked.
 
 ![scaling_vit_22b_paper_fig1](/assets/img/how_to_scale_cheatsheet/scaling_vit_22b_paper_fig1.png){: width="100%"}
 
@@ -1515,11 +1515,11 @@ This means the model may fail to assign sufficiently high probabilities to targe
 ![real_training_coord_check_fig2](/assets/img/how_to_scale_cheatsheet/real_training_coord_check_fig2.png){: width="100%"}
 
 - **Remove bias terms in linear layers**
-    - Most frontier LLMs do not use bias in their linear layers—even recent state-of-the-art models.
+    - Most frontier LLMs do not use bias in their linear layers, even recent state-of-the-art models.
         - Likely due to numerical stability and better generalization.
             - For numerical stability, I’ve seen cases where bias terms were so large that log-prob ratio for PPO (e.g. with vLLM inference) diverged at step 0. (It should ideally be 0.)
             - And, well, *bias* is literally bias. You'd better off tuning your slope (weight), not your bias for model generalization (i guess).
-        - However, [Qwen2](https://arxiv.org/abs/2407.10671) uses bias in QKV projection—based on [Su Jianlin's blog post](https://spaces.ac.cn/archives/9577)—claiming it helps generalization for long context.
+        - However, [Qwen2](https://arxiv.org/abs/2407.10671) uses bias in QKV projection, based on [Su Jianlin's blog post](https://spaces.ac.cn/archives/9577), claiming it helps generalization for long context.
 
 - **Reconsider your optimizer HPs**
     - The standard setup for training large-scale transformers is often $$(\beta_1, \beta_2, \epsilon) = (0.9, 0.95, 1e{-8})$$,  
@@ -1620,7 +1620,7 @@ And DeepSeek consistently uses 0.006 as the init std from v1 (7B dense) to v3 (6
 ![deepseek_init_std](/assets/img/how_to_scale_cheatsheet/deepseek_init_std.png){: width="100%"}
 
 I honestly don’t know exactly why this works so well.  
-My guess is that it’s due to the combination of many normalization modules, residual connections, and adaptive optimizers—but who really knows?
+My guess is that it’s due to the combination of many normalization modules, residual connections, and adaptive optimizers, but who really knows?
 
 
 ### <mark style='background-color: #dcffe4'> Rethinking Conventional Wisdom </mark>
@@ -1640,7 +1640,7 @@ So, i'd like to recommed you to doubt conventional wisdom when scaling up NN.
 
 - `Is pre-training scaling done?`
     - Ilya said pre-training is done (of course, only for frontier labs lol).  
-    - Team OpenAI admitted that before 2024–25, compute was the bottleneck—but now the bottleneck is dataset availability.  
+    - Team OpenAI admitted that before 2024–25, compute was the bottleneck, but now the bottleneck is dataset availability.  
       > I guess frontier labs have already used up the entire internet.
 
 - `However, there is room for scaling i guess`
@@ -1659,7 +1659,7 @@ So, i'd like to recommed you to doubt conventional wisdom when scaling up NN.
         - frontier models are already native multimodal but there are still many video and speech, ... data and they have much richer information than texts
     - Synthetic dataset
         - Some may be skeptical about synthetic data due to mode collapse (e.g. models trained only on easy QA data).  
-          But think about RL: it’s trial-and-error-based, generating its own training trajectories (i.e., synthetic data) and optimizing conservatively. It’s not weird to use synthetic datasets—and many recent works show that distillation from frontier models (e.g., o-series, Gemini, R1) gives a huge improvement.
+          But think about RL: it’s trial-and-error-based, generating its own training trajectories (i.e., synthetic data) and optimizing conservatively. It’s not weird to use synthetic datasets, and many recent works show that distillation from frontier models (e.g., o-series, Gemini, R1) gives a huge improvement.
 
 Transformer was a revolution level improvement, but it seems not enough today.
 I believe we can keep pushing the limit by improving architecture and optimizer.
