@@ -87,7 +87,8 @@ module AutoToc
 
   # Extract TOC from markdown content (for Pages where content isn't converted yet)
   # Matches: ## Heading {#id} or ## Heading
-  def extract_from_markdown(content)
+  def extract_from_markdown(content, slugify: nil)
+    slugify_fn = slugify || method(:default_slugify)
     sections = []
     current = nil
 
@@ -102,8 +103,8 @@ module AutoToc
         name = normalize_text(strip_tags(raw_name))
         next if name.empty?
 
-        # Use explicit id or generate from name
-        id = explicit_id && !explicit_id.empty? ? explicit_id : default_slugify(name)
+        # Use explicit id or generate from name using provided slugify
+        id = explicit_id && !explicit_id.empty? ? explicit_id : slugify_fn.call(name)
         entry = { "name" => name, "id" => id }
 
         if level == 2
@@ -133,12 +134,13 @@ if defined?(Jekyll)
     next unless auto_enabled
 
     content = doc.content.to_s
+    slugify_fn = ->(t) { Jekyll::Utils.slugify(t.to_s, mode: "default") }
 
     # Try HTML extraction first (for Documents where content is already converted)
     toc = AutoToc.extract(content)
 
     # If no HTML headings found, try markdown extraction (for Pages)
-    toc = AutoToc.extract_from_markdown(content) if toc.empty?
+    toc = AutoToc.extract_from_markdown(content, slugify: slugify_fn) if toc.empty?
 
     unless toc.empty?
       doc.data["toc"] = toc
