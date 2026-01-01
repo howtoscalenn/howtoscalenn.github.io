@@ -87,8 +87,8 @@ module AutoToc
 end
 
 if defined?(Jekyll)
-  # Use :pre_render hook to ensure toc is available when layout renders
-  Jekyll::Hooks.register [:pages, :documents], :pre_render do |doc|
+  # Use :pre_render hook with payload to directly set page.toc for templates
+  Jekyll::Hooks.register [:pages, :documents], :pre_render do |doc, payload|
     # Respect explicit toc in front matter.
     next if doc.data.key?("toc")
 
@@ -108,7 +108,11 @@ if defined?(Jekyll)
 
     Jekyll.logger.info "AutoToc:", "Found #{toc.size} sections"
 
-    doc.data["toc"] = toc unless toc.empty?
+    unless toc.empty?
+      doc.data["toc"] = toc
+      # Also set in payload to ensure template can access it as page.toc
+      payload["page"]["toc"] = toc if payload && payload["page"]
+    end
   end
 end
 
