@@ -18,7 +18,7 @@ authors:
   - name: Seunghyun Seo
     url: "https://x.com/SeunghyunSEO7"
 
-# Auto-generate table of contents from ## / ### headings (see `_plugins/auto_toc.rb`).
+# Auto-generate table of contents from ## / ### headings
 auto_toc: true
 
 # Below is an example of injecting additional post-specific styles.

@@ -12,7 +12,9 @@ module AutoToc
   end
 
   def extract_id(attrs)
-    attrs.to_s[/\sid=(["'])([^"']+)\1/i, 2]
+    # Match id attribute with or without leading space, handling both quote styles
+    attrs.to_s[/\bid=(["'])([^"']+)\1/i, 2] ||
+      attrs.to_s[/\bid=([^\s>"']+)/i, 1]
   end
 
   def default_slugify(text)
@@ -95,11 +97,16 @@ if defined?(Jekyll)
     auto_enabled = doc.data["auto_toc"] == true || doc.data["layout"].to_s == "distill"
     next unless auto_enabled
 
+    Jekyll.logger.info "AutoToc:", "Processing #{doc.relative_path}"
+
     doc.content = AutoToc.ensure_heading_ids(
       doc.content,
       slugify: ->(t) { Jekyll::Utils.slugify(t.to_s, mode: "default") }
     )
     toc = AutoToc.extract(doc.content)
+
+    Jekyll.logger.info "AutoToc:", "Found #{toc.size} sections"
+
     doc.data["toc"] = toc unless toc.empty?
   end
 end
