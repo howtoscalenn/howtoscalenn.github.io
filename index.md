@@ -1520,7 +1520,7 @@ Indeed, `Muon` with `spectral muP` (name is bit different with pure muP, but it'
 
 Key summary of Muon is as follows.
 
-![scaling_training_horizon_slide_002](/assets/img/how_to_scale_cheatsheet/scaling_training_horizon_slide_002.png)
+![scaling_training_horizon_slide_002](/assets/img/how_to_scale_cheatsheet/scaling_training_horizon_slide_002.png){: width=="100%}
 *Fig. [Source tweet](https://x.com/SeunghyunSEO7/status/1991367756005224843)*
 
 Indeed, the motivation of Muon is same as muP.
@@ -1564,8 +1564,9 @@ $$
 
 At this point, we can use `Newton Schulz (NS) Iteration` to make every singluar values of update quantiy's to be 1.
 This is very clever choice because NS Iteration is done by 5 times matmul which can leverage modern GPGPU's tensor cores unlike SVD.
+(once again, see the below figure's formula)
 
-![scaling_training_horizon_slide_002](/assets/img/how_to_scale_cheatsheet/scaling_training_horizon_slide_002.png)
+![scaling_training_horizon_slide_002](/assets/img/how_to_scale_cheatsheet/scaling_training_horizon_slide_002.png){: width=="100%}
 
 Actually, we can (spectral) muP controls this spectral norm of update quantity by adjusting Adam(W)'s lr by 1/n (n is width), but Muon directly achieve this more natually.
 So, as you can see, spectral muP init + Muon can give us not only good performance but also good HP transfer across model width.
