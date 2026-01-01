@@ -47,7 +47,7 @@ _styles: >
   }
 ---
 
-`Last Update) Dec 31st 2025`
+`Last Update: Dec 31st 2025`
 
 Before we dive in, I’d like to acknowledge that this post is heavily inspired by
 [Simo Ryu](https://x.com/cloneofsimo)’s [“What to do to scale up?”](https://cloneofsimo.notion.site/What-to-do-to-scale-up-09e469d7c3444d6a90305397c38a46f5),
