@@ -1140,7 +1140,9 @@ I'd like to say there is still many room to do in advanced architectures like Mo
 *Fig. [Source tweet](https://x.com/JingyuanLiu123/status/1919266180407177565)*
 
 
-## <mark style='background-color: #fff5b1'> Updated) How to Scale Dataset Size (HP Scaling Law, (Critical) Batch size...) </mark> {#how-to-scale-dataset-size-hp-scaling-law-critical-batch-size}
+## <mark style='background-color: #fff5b1'> How to Scale Dataset Size (HP Scaling Law, (Critical) Batch size...) </mark> {#how-to-scale-dataset-size-hp-scaling-law-critical-batch-size}
+
+### <mark style='background-color: #dcffe4'> Updated) Scaling Training Horizion By Adjusting Weight Decay </mark>
 
 As discussed above, even muP does not guarantee hyperparameter (HP) transfer across training tokens or bsz.
 However, following [Wang et al. (How to set AdamW's weight decay as you scale model and dataset size)](https://arxiv.org/abs/2405.13698), we can treat AdamW update rule as Exponential Moving Average (EMA) and define nice scaling rule for training horizon by adjusting weight decay.
@@ -1520,7 +1522,7 @@ Indeed, `Muon` with `spectral muP` (name is bit different with pure muP, but it'
 
 Key summary of Muon is as follows.
 
-![scaling_training_horizon_slide_002](/assets/img/how_to_scale_cheatsheet/scaling_training_horizon_slide_002.png){: width=="100%}
+![scaling_training_horizon_slide_002](/assets/img/how_to_scale_cheatsheet/scaling_training_horizon_slide_002.png){: width="100%"}
 *Fig. [Source tweet](https://x.com/SeunghyunSEO7/status/1991367756005224843)*
 
 Indeed, the motivation of Muon is same as muP.
@@ -1566,7 +1568,7 @@ At this point, we can use `Newton Schulz (NS) Iteration` to make every singluar 
 This is very clever choice because NS Iteration is done by 5 times matmul which can leverage modern GPGPU's tensor cores unlike SVD.
 (once again, see the below figure's formula)
 
-![scaling_training_horizon_slide_002](/assets/img/how_to_scale_cheatsheet/scaling_training_horizon_slide_002.png){: width=="100%}
+![scaling_training_horizon_slide_002](/assets/img/how_to_scale_cheatsheet/scaling_training_horizon_slide_002.png){: width="100%"}
 
 Actually, we can (spectral) muP controls this spectral norm of update quantity by adjusting Adam(W)'s lr by 1/n (n is width), but Muon directly achieve this more natually.
 So, as you can see, spectral muP init + Muon can give us not only good performance but also good HP transfer across model width.
