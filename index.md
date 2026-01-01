@@ -18,18 +18,8 @@ authors:
   - name: Seunghyun Seo
     url: "https://x.com/SeunghyunSEO7"
 
-# Add a table of contents to your post.
-#   - make sure that TOC names match the actual section names
-#     for hyperlinks within the post to work correctly. 
-#   - please use this format rather than manually creating a markdown table of contents.
-toc:
-  - name: Motivation
-  - name: How to Scale Model Size (Parameterization, ...)
-  - name: How to Scale Dataset Size (HP Scaling Law, (Critical) Batch size...)
-  - name: Some Tips for Training Large Transformers
-  - name: Outro
-  - name: Acknowledgement
-  - name: References
+# Auto-generate table of contents from ## / ### headings (see `_plugins/auto_toc.rb`).
+auto_toc: true
 
 # Below is an example of injecting additional post-specific styles.
 # This is used in the 'Layouts' section of this post.
@@ -159,7 +149,7 @@ Of course, there may be other viable approaches.
 Normalization techniques such as BatchNorm and LayerNorm can help correct imbalances and improve optimization.  
 Adaptive optimizers may also help, but normalization and Adam alone are insufficient.  
 Recently proposed advanced optimizers like [Muon](https://kellerjordan.github.io/posts/muon/) (with proper scaling factors) and [SCION](https://arxiv.org/abs/2502.07529) show that lr can transfer across model widths.
-(Not sure whether they guarantee *maximal* feature learning, though.)
+(i'll cover this later in this post)
 
 ![scion_lr_transferrability](/assets/img/how_to_scale_cheatsheet/scion_lr_transferrability.png){: width="100%"}
 *Fig. Source from [Training Deep Learning Models with Norm-Constrained LMOs](https://arxiv.org/abs/2502.07529). lr can be transferred with SCION optimizer*
@@ -910,11 +900,21 @@ we need to understand optimal lr scaling for all three dimensions.
 muP doesn't tell us how to adjust lr with respect to bsz or training tokens.
 
 
-### <mark style='background-color: #dcffe4'> Overall Scaling Rule using muP </mark>
+### <mark style='background-color: #dcffe4'> Outdated) Overall Scaling Rule using muP </mark>
+
++ Updated) note that, this scaling table is outdated now (Dec 31st 2025), currently many researchers have been exploring scaling rule for weight decay, adam(w) hparams like epsilon, beta 1, 2.
+[Completed Hyperparameter Transfer across Modules, Width, Depth, Batch and Duration](https://arxiv.org/abs/2512.22382) propose the ultimate scaling table across width, depth, batch size and training horizon. so, i recommend to read this paper.
+
+![completed_p_table1](/assets/img/how_to_scale_cheatsheet/completed_p_table1.png){: width="100%"}
+*Fig.*
+
+But i leave this subsection for your information.
+
+***
 
 This table is primarily derived from Tensor Program (TP) 4 and 5.  
 It assumes that model size growth is based only on width (hidden size or embedding size), not depth (number of layers), and that you're using an adaptive optimizer like Adam.
-Also, as discussed earlier, some scaling rules (like LR vs. bsz and training horizon) are based on my interpretation and findings from several papers.  
+Also, as discussed earlier, some scaling rules (like LR vs. bsz and training horizon) are based on my interpretation and findings from several papers.
 This table is heavily inspired by [‘What to do to scale up?’ from Simo Ryu](https://cloneofsimo.notion.site/What-to-do-to-scale-up-09e469d7c3444d6a90305397c38a46f5).
 
 Note that *this table is not optimal*.
@@ -1004,51 +1004,6 @@ and param norm growth never recovered even lr keep decreased by scheduler.
 ![muP_independent_wd_fig2](/assets/img/how_to_scale_cheatsheet/muP_independent_wd_fig2.png){: width="100%"}
 
 So I strongly recommend using `truly independent weight decay`, not the PyTorch default.
-
-+Updated) following [Wang et al. (How to set AdamW's weight decay as you scale model and dataset size)](https://arxiv.org/abs/2405.13698), we can treat AdamW update rule as Exponential Moving Average (EMA) and adjust weight decay.
-(by introducing weight decay update rule, above scaling table is broken furhter, so don't trust itself too much. this is for motivation)
-
-$$
-\theta_t 
-= \theta_{t-1} 
-- \underbrace{\eta_0 \color{red}{\gamma_t} \frac{\hat{m_t}}{\sqrt{\hat{v_t}} + \epsilon}}_{\text{adam update quantity}}
-- \underbrace{\color{red}{\gamma_t} \lambda \theta_{t-1}}_{\text{weight decay}}
-$$
-
-$$
-\theta_t 
-= (1 - \underbrace{\eta_t \lambda}_{\alpha}) \theta_{t-1} 
-- \eta_t \underbrace{(\frac{\hat{m_t}}{\sqrt{\hat{v_t}} + \epsilon})}_{\text{adam update quantity}}
-$$
-
-The above formula assumes PyTorch’s default weight decay rule, where it is multiplied by the base learning rate (not fully decoupled like i said).
-The key metric that authors use is the epoch time scale, $$\tau_{epoch} = \tau_{iter}/M = 1/(M \cdot \alpha) = 1/(M \cdot \eta \color{blue}{\lambda})$$ where $$M$$ is the number of optimizatio step.
-It tells us how many epochs of past updates AdamW’s EMA averages over and iter time scale corresponds to the window size in EMA, indicating how much weight is given to recent updates in the average (the larger the time scale, the more dominant the current updates become).
-
-And authors claim epoch time scale should remain constant regardless of model size or dataset scale and they show it's right.
-So as we scale up dataset size, we should scale down weight decay.
-
-![wang_et_al_paper_fig2](/assets/img/how_to_scale_cheatsheet/wang_et_al_paper_fig2.png){: width="80%"}
-
-Intuitively, For example, if we use 1M sample for 1 epoch and bsz 100, we update param 10000 times.
-but if we train model with 100 times larger samples for each epoch, we will update parameter 100 times more,
-and for HP transferability (similar training dynamics) it seems to make sense to increase window size.
-and also, step size $$M$$ is related to bsz, because if we increase bsz, $$M$$ will be decreased, so we should increase weight decay to compensate this.
-
-And for model size scale up, we know muP suggest $$1/n$$ lr scaling rule for hidden matrix, 
-so, we should scale weight decay like $$n \cdot \lambda$$ to fix epoch time scale.
-
-![wang_et_al_paper_fig3](/assets/img/how_to_scale_cheatsheet/wang_et_al_paper_fig3.png){: width="100%"}
-
-At this point, *we don't need to scale lr like $$\sqrt{bsz}$$ for adamw as we increase bsz*, rather we can conclude it could be better to control weight decay!
-Originally, $$\tau_{iter} = 1/(\eta \lambda)$$ is $$1/\lambda$$ if it's *truly decoupled weight decay*,
-so in this case, we don't need to scale weight decay according to model size.
-I guess this is another data point for why *truly decoupled weight decay* shows better transferability and performance.
-
-[Crebrase Team's Power lines](https://arxiv.org/pdf/2505.13738) further investigate this and for largely overtrained regime, epoch time scale would not be fixed but decreased exponentially following power laws.
-
-![power_lines_paper_adamw_as_ema2](/assets/img/how_to_scale_cheatsheet/power_lines_paper_adamw_as_ema2.png){: width="100%"}
-
 
 
 ### <mark style='background-color: #dcffe4'> Why SP can't admit feature learning or HP transfer and is it true? </mark>
@@ -1176,7 +1131,7 @@ Finally, though it seems to allow HP transfer well across various tasks and mode
 I'd like to say there is still many room to do in advanced architectures like MoE (even though [MoE for deep neural networks is popularized in 2017 by Noam Shazeer](https://arxiv.org/abs/1701.06538)) or something newly proposed models.
 (from Simo's work and my experiences, it seems that MoE is compatible with muP but in my experience, MoE is bit sensitive to init std and output scale of routed experts in some large scale)
 
-+Updated) [Jingyuan Liu](https://x.com/JingyuanLiu123), the 1st author of [Muon is Scalable for LLM Training](https://arxiv.org/abs/2502.16982), mentioned it is very important to match Root Mean Squared (RMS) scale of each module's output (especially routed experts and shared expert) to prevent expert collapse. (see appendix of moonlight paper)
++ Updated) [Jingyuan Liu](https://x.com/JingyuanLiu123), the 1st author of [Muon is Scalable for LLM Training](https://arxiv.org/abs/2502.16982), mentioned it is very important to match Root Mean Squared (RMS) scale of each module's output (especially routed experts and shared expert) to prevent expert collapse. (see appendix of moonlight paper)
 
 ![jingyuan_liu_tweet_moe_rms_matching_fig1](/assets/img/how_to_scale_cheatsheet/jingyuan_liu_tweet_moe_rms_matching_fig1.png){: width="100%"}
 *Fig. [Source tweet](https://x.com/JingyuanLiu123/status/1919266180407177565)*
@@ -1185,13 +1140,66 @@ I'd like to say there is still many room to do in advanced architectures like Mo
 *Fig. [Source tweet](https://x.com/JingyuanLiu123/status/1919266180407177565)*
 
 
-## <mark style='background-color: #fff5b1'> How to Scale Dataset Size (HP Scaling Law, (Critical) Batch size...) </mark> {#how-to-scale-dataset-size-hp-scaling-law-critical-batch-size}
+## <mark style='background-color: #fff5b1'> Updated) How to Scale Dataset Size (HP Scaling Law, (Critical) Batch size...) </mark> {#how-to-scale-dataset-size-hp-scaling-law-critical-batch-size}
+
+As discussed above, even muP does not guarantee hyperparameter (HP) transfer across training tokens or bsz.
+However, following [Wang et al. (How to set AdamW's weight decay as you scale model and dataset size)](https://arxiv.org/abs/2405.13698), we can treat AdamW update rule as Exponential Moving Average (EMA) and define nice scaling rule for training horizon by adjusting weight decay.
+
+I recommend you to read [my recent twitter thread](https://x.com/SeunghyunSEO7/status/2006363639037788460) for this.
+
+![scaling_across_training_horizon_thread](/assets//img/how_to_scale_cheatsheet/scaling_across_training_horizon_thread.png){: width="100%"}
+*Fig. [Source tweet](https://x.com/SeunghyunSEO7/status/2006363639037788460)*
+
+***
+
+Ok, so let's interpret Adam(W) update rule as EMA.
+
+$$
+\theta_t 
+= \theta_{t-1} 
+- \underbrace{\eta_0 \color{red}{\gamma_t} \frac{\hat{m_t}}{\sqrt{\hat{v_t}} + \epsilon}}_{\text{adam update quantity}}
+- \underbrace{\color{red}{\gamma_t} \lambda \theta_{t-1}}_{\text{weight decay}}
+$$
+
+$$
+\theta_t 
+= (1 - \underbrace{\eta_t \lambda}_{\alpha}) \theta_{t-1} 
+- \eta_t \underbrace{(\frac{\hat{m_t}}{\sqrt{\hat{v_t}} + \epsilon})}_{\text{adam update quantity}}
+$$
+
+The above formula assumes PyTorch’s default weight decay rule, where it is multiplied by the base learning rate (not fully decoupled like i said).
+The key metric that authors use is the epoch time scale, $$\tau_{epoch} = \tau_{iter}/M = 1/(M \cdot \alpha) = 1/(M \cdot \eta \color{blue}{\lambda})$$ where $$M$$ is the number of optimizatio step.
+It tells us how many epochs of past updates AdamW’s EMA averages over and iter time scale corresponds to the window size in EMA, indicating how much weight is given to recent updates in the average (the larger the time scale, the more dominant the current updates become).
+
+And authors claim epoch time scale should remain constant regardless of model size or dataset scale and they show it's right.
+So as we scale up dataset size, we should scale down weight decay.
+
+![wang_et_al_paper_fig2](/assets/img/how_to_scale_cheatsheet/wang_et_al_paper_fig2.png){: width="80%"}
+
+Intuitively, For example, if we use 1M sample for 1 epoch and bsz 100, we update param 10000 times.
+but if we train model with 100 times larger samples for each epoch, we will update parameter 100 times more,
+and for HP transferability (similar training dynamics) it seems to make sense to increase window size.
+and also, step size $$M$$ is related to bsz, because if we increase bsz, $$M$$ will be decreased, so we should increase weight decay to compensate this.
+
+And for model size scale up, we know muP suggest $$1/n$$ lr scaling rule for hidden matrix, 
+so, we should scale weight decay like $$n \cdot \lambda$$ to fix epoch time scale.
+
+![wang_et_al_paper_fig3](/assets/img/how_to_scale_cheatsheet/wang_et_al_paper_fig3.png){: width="100%"}
+
+At this point, *we don't need to scale lr like $$\sqrt{bsz}$$ for adamw as we increase bsz*, rather we can conclude it could be better to control weight decay!
+Originally, $$\tau_{iter} = 1/(\eta \lambda)$$ is $$1/\lambda$$ if it's *truly decoupled weight decay*,
+so in this case, we don't need to scale weight decay according to model size.
+I guess this is another data point for why *truly decoupled weight decay* shows better transferability and performance.
+
+[Crebrase Team's Power lines](https://arxiv.org/pdf/2505.13738) further investigate this and for largely overtrained regime, epoch time scale would not be fixed but decreased exponentially following power laws.
+
+![power_lines_paper_adamw_as_ema2](/assets/img/how_to_scale_cheatsheet/power_lines_paper_adamw_as_ema2.png){: width="100%"}
+
 
 ### <mark style='background-color: #dcffe4'> HP Scaling Laws </mark>
 
-As discussed above, even muP does not guarantee hyperparameter (HP) transfer across training tokens or bsz.
-To my best knowledge, there is not theory to ensure optimal lr scaling rule for both training horizon and bsz.
-It's very complicated to predict because every factors like bsz, num tokens, adaptive optimizer's HPs, ... are all correlated.
+Though `we can achieve HP transfer across training horizon by adjusting weight decay`,
+it's still complicated to predict because every factors like bsz, num tokens, adaptive optimizer's HPs, ... are all correlated.
 So, even though relying on empirical scaling laws may not feel mathematically beautiful, 
 fitting power laws for HPs like lr or bsz given computing budget or training horizon seems reasonable in practice.
 Because `Scaling Law is universal behavior`.
@@ -1491,6 +1499,71 @@ This means the model may fail to assign sufficiently high probabilities to targe
 *Fig.*
 
 
+## <mark style='background-color: #fff5b1'> Updated) Relationship between Muon and muP </mark> {#Muon}
+
+Thoguh there is good literatures such as [Jeremy's blog post](https://jeremybernste.in/writing/deriving-muon) and[Laker's blog post](https://www.lakernewhouse.com/writing/muon-1) (they are both authors of Muon), i'd like to cover `Muon optimizer` bit.
+Recently, [Muon (MomentUm Orthogonalized by Newton-Schulz)](https://kellerjordan.github.io/posts/muon/) has been very popular optimizer, but it's still looks complicated for newcomers.
+
+Why it works? What's the relationship between Muon and muP? (It contains `Mu`-on)? does it ensure HP transfer?
+
+One can explian because Adaptive optimizers like Adam(W) produce parameter update tensor with low stable rank, so there is few chance to explore large space of model, and Muon resolve this by boosting other directions with low eigenvalues.
+
+That's good point, but one thing we should keep in mind is that, Muon can be dervied [A Spectral Condition for Feature Learning](https://arxiv.org/abs/2310.17813) which is used for deriving muP.
+Indeed, `Muon` with `spectral muP` (name is bit different with pure muP, but it's same) also ensure maximal update itself, and it can transfer HP such as lr.
+
+Key summary of Muon is as follows.
+
+![scaling_training_horizon_slide_002](/assets/img/how_to_scale_cheatsheet/scaling_training_horizon_slide_002.png)
+*Fig. [Source tweet](https://x.com/SeunghyunSEO7/status/1991367756005224843)*
+
+Indeed, the motivation of Muon is same as muP.
+What we want here is that, we don't want every layer's output (pre-)activation don't blow up as we scale (we define this by big Theta notation before). 
+
+$$
+\left\| \boldsymbol{h}_{\ell} \right\|_{2} = \Theta(\sqrt{n_{\ell}}) \text{ and } \left\| \Delta \boldsymbol{h}_{\ell} \right\|_{2} = \Theta(\sqrt{n_{\ell}}), \text{ at layers } \ell = 1, \dots, L-1.
+$$
+
+And for this, we want to ensure not only initialized weight parameters' spectral norm become stable, but also our update quantities' spectral norm become stable.
+
+$$
+\left\| \mathbf{W}_\ell \right\|_* = \Theta \left( \sqrt{\frac{n_\ell}{n_{\ell-1}}} \right) \text{ and } \left\| \Delta \mathbf{W}_\ell \right\|_* = \Theta \left( \sqrt{\frac{n_\ell}{n_{\ell-1}}} \right), \text{ at layers } \ell=1, \dots, L.
+$$
+
+Because as we discussed before (in muP section), optimization process indeed accumulations of parmaters and the gradients which is (post-)processed by our optimizers like Adam.  
+
+$$
+\mathbf{h}_{\ell}(x) = \mathbf{W}_{\ell}\mathbf{h}_{\ell-1}(x) \quad \text{for } \ell = 2, \dots, L.
+$$
+
+$$
+\mathbf{h}_{\ell}(\mathbf{x}) + \Delta \mathbf{h}_{\ell}(\mathbf{x}) = (\mathbf{W}_{\ell} + \Delta \mathbf{W}_{\ell})(\mathbf{h}_{\ell-1}(\mathbf{x}) + \Delta \mathbf{h}_{\ell-1}(\mathbf{x})).
+$$
+
+But why spectral norm matters?
+What really matters here is `we don't want our model's activations blow up as forward propagation through many layers, also throughout the entire optimization procedure`, and what we should control to achieve this here is `how much each layer's weight matrix can stretch input feature` and it's actually spectral norm.
+And spectral norm is same as largest singular value of given matrix (matmul is actually rotation -> stretch -> rotation, and `stretch` is very important).
+
+To achieve this, we can force spectral norm of our initialized weight and update quantity using SVD.
+Because we can set all singular values (Simga matrix) as 1 after SVD.
+Intialization seems easy because no matter how SVD is heavy operation, we can just apply SVD to random matrices once at init point, but applying SVD for update quantity every iteration is non-sense.   
+
+$$
+\mathbf{W}_\ell = \sigma \sqrt{\frac{n_\ell}{n_{\ell-1}}} \times \frac{\mathbf{W}'_\ell}{\| \mathbf{W}'_\ell \|_*},
+$$
+
+$$
+\Delta \mathbf{W}_\ell = -\eta \sqrt{\frac{n_\ell}{n_{\ell-1}}} \times \frac{\nabla \mathbf{w}_\ell \mathcal{L}}{\left\|\nabla \mathbf{w}_\ell \mathcal{L}\right\|_*},
+$$
+
+At this point, we can use `Newton Schulz (NS) Iteration` to make every singluar values of update quantiy's to be 1.
+This is very clever choice because NS Iteration is done by 5 times matmul which can leverage modern GPGPU's tensor cores unlike SVD.
+
+![scaling_training_horizon_slide_002](/assets/img/how_to_scale_cheatsheet/scaling_training_horizon_slide_002.png)
+
+Actually, we can (spectral) muP controls this spectral norm of update quantity by adjusting Adam(W)'s lr by 1/n (n is width), but Muon directly achieve this more natually.
+So, as you can see, spectral muP init + Muon can give us not only good performance but also good HP transfer across model width.
+
+
 ## <mark style='background-color: #fff5b1'> Some Tips for Training Large Transformers </mark> {#some-tips-for-training-large-transformers}
 
 *(This subsection might be slightly outdated as it is based on my personal notes from early 2024.)*
@@ -1643,7 +1716,7 @@ So, i'd like to recommed you to doubt conventional wisdom when scaling up NN.
     - Team OpenAI admitted that before 2024–25, compute was the bottleneck, but now the bottleneck is dataset availability.  
       > I guess frontier labs have already used up the entire internet.
 
-- `However, there is room for scaling i guess`
+- `However, there is still room for scaling IMO`
     - Better optimizer
         - GDM, moonshot ai, and ... show that 2nd optimizer is promising
             - GDM uses Shampoo for distillation, but idk they use this for pre-training or not
@@ -1655,11 +1728,8 @@ So, i'd like to recommed you to doubt conventional wisdom when scaling up NN.
             - sparse model like MoE is already used for many frontier models but we need more
         - more scalable arch for long context
             - native sparse attention, ...
-    - Multimodal modeling
+    - Multimodal
         - frontier models are already native multimodal but there are still many video and speech, ... data and they have much richer information than texts
-    - Synthetic dataset
-        - Some may be skeptical about synthetic data due to mode collapse (e.g. models trained only on easy QA data).  
-          But think about RL: it’s trial-and-error-based, generating its own training trajectories (i.e., synthetic data) and optimizing conservatively. It’s not weird to use synthetic datasets, and many recent works show that distillation from frontier models (e.g., o-series, Gemini, R1) gives a huge improvement.
 
 Transformer was a revolution level improvement, but it seems not enough today.
 I believe we can keep pushing the limit by improving architecture and optimizer.
@@ -1674,7 +1744,7 @@ I believe we can keep pushing the limit by improving architecture and optimizer.
 *Fig. from my past slide on Scaling Law and MoE*
 
 Western frontier labs have been studying MoE for a long time,  
-and Chinese labs are following the trend.  
+and Chinese labs are following the trend.
 Recently, State Space Models (SSMs), hybrid attention, and sparse attention models have been activly studied,
 and we should know how to scale these models (ofc these models also consists of bunch of matmul, but)
 
@@ -1684,19 +1754,10 @@ and we should know how to scale these models (ofc these models also consists of 
 ![jeff_dean_slide_moe2](/assets/img/how_to_scale_cheatsheet/jeff_dean_slide_moe2.png){: width="100%"}
 *Fig. from [Jeff Dean's Talk](https://x.com/JeffDean/status/1912465393693622775)*
 
-- Though it is well known that techniques like MoE and second-order optimizers work well, there hasn’t been much `public discussion` on how to properly parameterize them for scaling.
-    - e.g. does muP still work for MoE, muon, shampoo or something?
-      - Updated) Recently proposed [Practical Efficiency of Muon for Pretraining](https://arxiv.org/abs/2505.02222) investigates the compatibility between muP and Muon.
+Though it is well known that techniques like MoE and second-order optimizers work well, there hasn’t been much `public discussion` on how to properly parameterize them for scaling.
 
-![muon_vs_adam](/assets/img/how_to_scale_cheatsheet/muon_vs_adam.png){: width="100%"}
-*Fig. Muon vs Adam. Muon keep outperforming adam, but we don't know how it can be well integrated with muP or something. Source from [Muon is Scalable for LLM Training](https://arxiv.org/abs/2502.16982v1).*
-
-- Recent works considers both scalability and maximal update (sample efficiency).
-
-![dualized_training](/assets/img/how_to_scale_cheatsheet/dualized_training.png){: width="100%"}
-*Fig. Dualized Training not only outperforms muP but also transfer lr. Source from [Jeremy Bernstein's Blog](https://jeremybernste.in/writing/deriving-muon)*
-
-- let's keep scaling up
+- e.g. does muP still work for MoE, muon, shampoo or something?
+  - Updated) Muon is maximal update itself and can ensure HP transfer with spectral muP init. 
 
 
 ## <mark style='background-color: #fff5b1'> Acknowledgement </mark> {#acknowledgement}
