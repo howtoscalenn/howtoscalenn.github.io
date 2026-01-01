@@ -1157,8 +1157,15 @@ Ok, so let's interpret Adam(W) update rule as EMA.
 $$
 \theta_t 
 = \theta_{t-1} 
-- \underbrace{\eta_0 \color{red}{\gamma_t} \frac{\hat{m_t}}{\sqrt{\hat{v_t}} + \epsilon}}_{\text{adam update quantity}}
-- \underbrace{\color{red}{\gamma_t} \lambda \theta_{t-1}}_{\text{weight decay}}
+- \underbrace{\eta_{\text{peak}} \color{red}{\gamma_t} \frac{\hat{m_t}}{\sqrt{\hat{v_t}} + \epsilon}}_{\text{adam update quantity}}
+- \underbrace{\color{red}{\gamma_t} \lambda \theta_{t-1}}_{\text{weight decay}} {\text{og AdamW}}
+$$
+
+$$
+\theta_t 
+= \theta_{t-1} 
+- \underbrace{\eta_{\text{peak}} \color{red}{\gamma_t} \frac{\hat{m_t}}{\sqrt{\hat{v_t}} + \epsilon}}_{\text{adam update quantity}}
+- \eta_{\text{peak}} \underbrace{\color{red}{\gamma_t} \lambda \theta_{t-1}}_{\text{weight decay}} \quad {\text{torch default AdamW}}
 $$
 
 $$
@@ -1766,6 +1773,7 @@ I'd like to thank everyone for taking the time to read this post and for sharing
 Special thanks to [Simo Ryu](https://x.com/cloneofsimo) for many thoughtful discussions, [Jingyuan Liu](https://x.com/JingyuanLiu123) for sharing the reasoning behind MoE scaling factors, [Alexandre](https://x.com/AlexandreTL2) for the experimental results on Mamba with muP.
 And I’d also like to thank [Seonghyeon Kim](https://x.com/rosinality), [Charlie Blake](https://x.com/thecharlieblake), and Donghoon Ham for their warm encouragement and helpful feedback.
 
++ Updated) i'd like to say thank you to [Xi Wang](https://x.com/xidulu) for helpful discussion for scaling training horizon (dataset size).
 
 ## <mark style='background-color: #fff5b1'> References </mark> {#references}
 

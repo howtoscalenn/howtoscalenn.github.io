@@ -15,6 +15,42 @@ module AutoToc
     attrs.to_s[/\sid=(["'])([^"']+)\1/i, 2]
   end
 
+  def default_slugify(text)
+    normalize_text(text).downcase
+                        .gsub(/[^a-z0-9\s-]/, "")
+                        .tr("_", " ")
+                        .gsub(/\s+/, "-")
+                        .gsub(/-+/, "-")
+                        .gsub(/\A-|-+\z/, "")
+  end
+
+  def ensure_heading_ids(html, slugify: nil)
+    slugify_fn = slugify || method(:default_slugify)
+    seen = Hash.new(0)
+
+    html.to_s.gsub(/<(h2|h3)([^>]*)>(.*?)<\/\1>/im) do
+      tag = Regexp.last_match(1)
+      attrs = Regexp.last_match(2)
+      inner = Regexp.last_match(3)
+
+      existing_id = extract_id(attrs)
+      next "<#{tag}#{attrs}>#{inner}</#{tag}>" if existing_id && !existing_id.empty?
+
+      name = normalize_text(strip_tags(inner))
+      slug = slugify_fn.call(name)
+      slug = "section" if slug.empty?
+
+      seen[slug] += 1
+      unique_slug = seen[slug] == 1 ? slug : "#{slug}-#{seen[slug]}"
+
+      if attrs.to_s.strip.empty?
+        "<#{tag} id=\"#{unique_slug}\">#{inner}</#{tag}>"
+      else
+        "<#{tag}#{attrs} id=\"#{unique_slug}\">#{inner}</#{tag}>"
+      end
+    end
+  end
+
   # Extract a TOC data structure compatible with `_layouts/distill.html`:
   # [
   #   { "name" => "...", "id" => "...", "subsections" => [{ "name" => "...", "id" => "..." }, ...] },
@@ -59,6 +95,10 @@ if defined?(Jekyll)
     auto_enabled = doc.data["auto_toc"] == true || doc.data["layout"].to_s == "distill"
     next unless auto_enabled
 
+    doc.content = AutoToc.ensure_heading_ids(
+      doc.content,
+      slugify: ->(t) { Jekyll::Utils.slugify(t.to_s, mode: "default") }
+    )
     toc = AutoToc.extract(doc.content)
     doc.data["toc"] = toc unless toc.empty?
   end
