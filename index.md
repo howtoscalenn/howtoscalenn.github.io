@@ -122,7 +122,7 @@ We’ll discuss this point later in the post.
 
 ## <mark style='background-color: #fff5b1'> How to Scale Model Size (Parameterization, ...) </mark> {#how-to-scale-model-size-parameterization}
 
-### <mark style='background-color: #dcffe4'> Maximal Update Parameterization (muP) (What 'Maximal' actually means?) </mark>
+### <mark style='background-color: #dcffe4'> Maximal Update Parameterization (muP) (What 'Maximal' actually means?) </mark> {#maximal-update-parameterization-mup-what-maximal-actually-means}
 
 It’s important to note that muP literally stands for `Maximal Update`.
 
@@ -220,7 +220,7 @@ the embedding and output layers eventually start learn something in later.
 (or maybe… it’s just my skill issue)
 
 
-### <mark style='background-color: #dcffe4'> Key Intuition and Derivation of muP </mark>
+### <mark style='background-color: #dcffe4'> Key Intuition and Derivation of muP </mark> {#key-intuition-and-derivation-of-mup}
 
 Now we're gonna derive unique scaling rule for maximal update and HP transfer.
 
@@ -578,7 +578,7 @@ Actually, What muP want to say is simply as follows
 ![what_mup_want_in_tp4](/assets/img/how_to_scale_cheatsheet/what_mup_want_in_tp4.png){: width="70%"}
 
 
-### <mark style='background-color: #dcffe4'> abc-parameterization </mark>
+### <mark style='background-color: #dcffe4'> abc-parameterization </mark> {#abc-parameterization}
 
 Actually, TP authors defines abc-parameterization for muP,
 where `a` stands for multiplier, `b` for init std, and `c` for lr per parameters,
@@ -842,7 +842,7 @@ tensor(2.5274e-05, grad_fn=<MeanBackward0>) tensor(-0.0009, grad_fn=<MeanBackwar
 ```
 
 
-### <mark style='background-color: #dcffe4'> muP is not Silver Bullet (across the batch size and training horizon) </mark>
+### <mark style='background-color: #dcffe4'> muP is not Silver Bullet (across the batch size and training horizon) </mark> {#mup-is-not-silver-bullet-across-the-batch-size-and-training-horizon}
 
 Now we know how to scale up model size ,  we know how to transfer optimal HPs from small-scale proxy experiments.  
 However, even though muP is theoretically well-defined,  
@@ -900,7 +900,7 @@ we need to understand optimal lr scaling for all three dimensions.
 muP doesn't tell us how to adjust lr with respect to bsz or training tokens.
 
 
-### <mark style='background-color: #dcffe4'> Outdated) Overall Scaling Rule using muP </mark>
+### <mark style='background-color: #dcffe4'> Outdated) Overall Scaling Rule using muP </mark> {#outdated-overall-scaling-rule-using-mup}
 
 + Updated) note that, this scaling table is outdated now (Dec 31st 2025), currently many researchers have been exploring scaling rule for weight decay, adam(w) hparams like epsilon, beta 1, 2.
 [Completed Hyperparameter Transfer across Modules, Width, Depth, Batch and Duration](https://arxiv.org/abs/2512.22382) propose the ultimate scaling table across width, depth, batch size and training horizon. so, i recommend to read this paper.
@@ -1006,7 +1006,7 @@ and param norm growth never recovered even lr keep decreased by scheduler.
 So I strongly recommend using `truly independent weight decay`, not the PyTorch default.
 
 
-### <mark style='background-color: #dcffe4'> Why SP can't admit feature learning or HP transfer and is it true? </mark>
+### <mark style='background-color: #dcffe4'> Why SP can't admit feature learning or HP transfer and is it true? </mark> {#why-sp-can-t-admit-feature-learning-or-hp-transfer-and-is-it-true}
 
 Although muP is theoretically well-defined and Greg Yang claims it's a unique solution,
 it may offer only marginal performance improvements over other parameterizations or muP variants in practice.  
@@ -1030,7 +1030,7 @@ and even reports that SP, with a novel per-layer lr schedule outperforms muP in 
 *Fig. [Scaling Exponents Across Parameterizations and Optimizers](https://arxiv.org/abs/2407.05872)*
 
 
-### <mark style='background-color: #dcffe4'> OG Transformer, PaLM and Gemma Parameterization </mark>
+### <mark style='background-color: #dcffe4'> OG Transformer, PaLM and Gemma Parameterization </mark> {#og-transformer-palm-and-gemma-parameterization}
 
 How did earlier papers approach parameterization?  
 Surprisingly, papers like [*Attention Is All You Need*](https://arxiv.org/abs/1706.03762) and the [*Pathways Language Model (PaLM)*](https://arxiv.org/abs/2204.02311) share a few common traits.
@@ -1071,7 +1071,7 @@ we can check that GDM continues to try to apply proper parameterization.
 *Fig.*
 
 
-### <mark style='background-color: #dcffe4'> Some Research Question </mark>
+### <mark style='background-color: #dcffe4'> Some Research Question </mark> {#some-research-question}
 
 Assume you train Mixture of Experts (MoE) model.
 What init std, and effective lr should we use for sparsely activated Feed Forward Neural Network (FFN)? 
@@ -1142,7 +1142,7 @@ I'd like to say there is still many room to do in advanced architectures like Mo
 
 ## <mark style='background-color: #fff5b1'> How to Scale Dataset Size (HP Scaling Law, (Critical) Batch size...) </mark> {#how-to-scale-dataset-size-hp-scaling-law-critical-batch-size}
 
-### <mark style='background-color: #dcffe4'> Updated) Scaling Training Horizion By Adjusting Weight Decay </mark>
+### <mark style='background-color: #dcffe4'> Updated) Scaling Training Horizion By Adjusting Weight Decay </mark> {#updated-scaling-training-horizion-by-adjusting-weight-decay}
 
 As discussed above, even muP does not guarantee hyperparameter (HP) transfer across training tokens or bsz.
 However, following [Wang et al. (How to set AdamW's weight decay as you scale model and dataset size)](https://arxiv.org/abs/2405.13698), we can treat AdamW update rule as Exponential Moving Average (EMA) and define nice scaling rule for training horizon by adjusting weight decay.
@@ -1205,7 +1205,7 @@ I guess this is another data point for why *truly decoupled weight decay* shows 
 ![power_lines_paper_adamw_as_ema2](/assets/img/how_to_scale_cheatsheet/power_lines_paper_adamw_as_ema2.png){: width="100%"}
 
 
-### <mark style='background-color: #dcffe4'> HP Scaling Laws </mark>
+### <mark style='background-color: #dcffe4'> HP Scaling Laws </mark> {#hp-scaling-laws}
 
 Though `we can achieve HP transfer across training horizon by adjusting weight decay`,
 it's still complicated to predict because every factors like bsz, num tokens, adaptive optimizer's HPs, ... are all correlated.
@@ -1291,7 +1291,7 @@ Otherwise, predicted optimal values may diverge significantly.
 *Fig. Stepfun Law shows how HP landscape shifts based on min lr and lr schedule.*
 
 
-### <mark style='background-color: #dcffe4'> About Terms like 'Optimal Batch Size' and 'Critical Batch Size' </mark> 
+### <mark style='background-color: #dcffe4'> About Terms like 'Optimal Batch Size' and 'Critical Batch Size' </mark> {#about-terms-like-optimal-batch-size-and-critical-batch-size}
 
 Someone might think like "wtf is `Optimal Batch Size`?".
 Indeed, `bsz should not be tunable parameter for validation performance if you propetly set optimizer parameters like lr, adam beta 1,2 and eps`.
@@ -1346,7 +1346,7 @@ But in practice, as long as we only tune the lr while leaving the rest fixed,
 the notion of an optimal bsz still holds some practical value.
 
 
-### <mark style='background-color: #dcffe4'> Fitted LR Scheudler for Real World LLMs </mark>
+### <mark style='background-color: #dcffe4'> Fitted LR Scheudler for Real World LLMs </mark> {#fitted-lr-scheudler-for-real-world-llms}
 
 Anyway, we can fit scaling laws for HPs.  
 Below are actual lr scheduler examples derived from each paper’s HP scaling law.  
@@ -1384,7 +1384,7 @@ So, if you want to use any existing HP scaling law,
 you should at least match the original setup they were derived from (e.g., wide/shallow ratio, LR scheduler, etc.).  
 Otherwise, you should fit your own law.
 
-### <mark style='background-color: #dcffe4'> Some Scaling Behaviors of Critical Batch Size and Sensitivity to Optimizer </mark>
+### <mark style='background-color: #dcffe4'> Some Scaling Behaviors of Critical Batch Size and Sensitivity to Optimizer </mark> {#some-scaling-behaviors-of-critical-batch-size-and-sensitivity-to-optimizer}
 
 Originally, cbsz does not depend on model size, but rather on achievable loss.  
 So it makes sense to double the bsz once the model reaches a certain loss threshold in order to train faster.  
@@ -1430,7 +1430,7 @@ In [Dion paper](https://arxiv.org/abs/2504.05295), they show that their new opti
 *Fig. [Dion: A Communication-Efficient Optimizer for Large Models](https://arxiv.org/abs/2504.05295)*
 
 
-### <mark style='background-color: #dcffe4'> Pre-Training Hyperparameter References </mark>
+### <mark style='background-color: #dcffe4'> Pre-Training Hyperparameter References </mark> {#pre-training-hyperparameter-references}
 
 Here are some reference bsz and lr used for LLM pre-training.  
 Note that I excluded papers that don’t explore or discuss scaling rules (at least in the paper).  
@@ -1456,7 +1456,7 @@ So I decided to exclude them from this list.
 |Hunyuan-Large |MoE| 52B (E16K1S1) | 389B | 7T | ? | ? | ? | ? | ? | ? | Cross Linear Attention (CLA) |
 
 
-### <mark style='background-color: #dcffe4'> QK Layernorm and "Put Everywhere Norm" </mark>
+### <mark style='background-color: #dcffe4'> QK Layernorm and "Put Everywhere Norm" </mark> {#qk-layernorm-and-put-everywhere-norm}
 
 Recently, many researchers have started placing LayerNorms *everywhere*, including:
 
@@ -1580,7 +1580,7 @@ So, as you can see, spectral muP init + Muon can give us not only good performan
 
 - **Use `bfloat16 (bf16)` instead of `float16 (fp16)`**
     - It has the same dynamic range as `float32 (fp32)` and doesn't require dynamic loss scaling (no overhead).
-    - Update) consider `fp8` if you have state-of-the-art accelerators and no skill issues.
+    - Update) consider `fp8` or `fp4` if you have state-of-the-art accelerators and no skill issues.
 
 - **Consider using `Maximal Update Parameterization (muP)` instead of Standard Parameterization (SP)**
 
@@ -1652,7 +1652,7 @@ There are some examples like:
 
 A good training algorithm (and infra design) should scale well with both model size and hardware.
 
-### <mark style='background-color: #dcffe4'> Tuning Adam beta 1,2 could be non-trivial </mark>
+### <mark style='background-color: #dcffe4'> Tuning Adam beta 1,2 could be non-trivial </mark> {#tuning-adam-beta-1-2-could-be-non-trivial}
 
 It is well known that adam(w) beta1,2,eps=(0.9,0.95,1e-8) works well.
 But it could be not optimal.
@@ -1664,7 +1664,7 @@ I didnt explore this topic a lot, but [How Does Critical Batch Size Scale in Pre
 ![how_does_cbsz_scale_paper_fig4](/assets/img/how_to_scale_cheatsheet/how_does_cbsz_scale_paper_fig4.png){: width="100%"}
 *Fig. Adam beta 1, 2 ablation from [How Does Critical Batch Size Scale in Pre-training?](https://arxiv.org/abs/2410.21676)*
 
-### <mark style='background-color: #dcffe4'> About 0.02 and 0.006 init std </mark>
+### <mark style='background-color: #dcffe4'> About 0.02 and 0.006 init std </mark> {#about-0-02-and-0-006-init-std}
 
 It’s noteworthy that some open-source framework model configs hardcode `std=0.02`, a value inherited from GPT-2 (up to 1.5B scale).  
 However, it’s not suitable for larger models like 30B, 60B, etc., because 0.02 roughly corresponds to $$\sqrt{1/1536}$$, the standard deviation derived from SP’s fan-in variance.  
@@ -1706,7 +1706,7 @@ I honestly don’t know exactly why this works so well.
 My guess is that it’s due to the combination of many normalization modules, residual connections, and adaptive optimizers, but who really knows?
 
 
-### <mark style='background-color: #dcffe4'> Rethinking Conventional Wisdom </mark>
+### <mark style='background-color: #dcffe4'> Rethinking Conventional Wisdom </mark> {#rethinking-conventional-wisdom}
 
 Inspired by [Rethinking Conventional Wisdom in Machine Learning: From Generalization to Scaling](https://arxiv.org/abs/2409.15156).
 In conventional regime, small bsz and lr at [Edge of Stability (EoS)](https://arxiv.org/abs/2103.00065) is known as good choice, 
