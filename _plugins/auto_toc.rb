@@ -84,6 +84,40 @@ module AutoToc
 
     sections
   end
+
+  # Extract TOC from markdown content (for Pages where content isn't converted yet)
+  # Matches: ## Heading {#id} or ## Heading
+  def extract_from_markdown(content)
+    sections = []
+    current = nil
+
+    content.to_s.each_line do |line|
+      # Match ## or ### headings (use \# to avoid interpolation)
+      if line =~ /^(\#{2,3})\s+(.+?)\s*(?:\{\#([^}]+)\})?\s*$/
+        level = Regexp.last_match(1).length
+        raw_name = Regexp.last_match(2)
+        explicit_id = Regexp.last_match(3)
+
+        # Strip HTML tags like <mark>...</mark>
+        name = normalize_text(strip_tags(raw_name))
+        next if name.empty?
+
+        # Use explicit id or generate from name
+        id = explicit_id && !explicit_id.empty? ? explicit_id : default_slugify(name)
+        entry = { "name" => name, "id" => id }
+
+        if level == 2
+          current = entry
+          sections << current
+        elsif level == 3 && current
+          current["subsections"] ||= []
+          current["subsections"] << entry
+        end
+      end
+    end
+
+    sections
+  end
 end
 
 if defined?(Jekyll)
@@ -100,18 +134,26 @@ if defined?(Jekyll)
 
     Jekyll.logger.info "AutoToc:", "Processing #{doc.relative_path}"
 
-    doc.content = AutoToc.ensure_heading_ids(
-      doc.content,
-      slugify: ->(t) { Jekyll::Utils.slugify(t.to_s, mode: "default") }
-    )
-    toc = AutoToc.extract(doc.content)
+    content = doc.content.to_s
+
+    # Try HTML extraction first (for Documents where content is already converted)
+    toc = AutoToc.extract(content)
+
+    # If no HTML headings found, try markdown extraction (for Pages)
+    if toc.empty?
+      Jekyll.logger.info "AutoToc:", "No HTML headings, trying markdown extraction"
+      toc = AutoToc.extract_from_markdown(content)
+    end
 
     Jekyll.logger.info "AutoToc:", "Found #{toc.size} sections"
 
     unless toc.empty?
       doc.data["toc"] = toc
-      # Also set in payload to ensure template can access it as page.toc
-      payload["page"]["toc"] = toc if payload && payload["page"]
+      # Set in payload to ensure template can access it as page.toc
+      if payload && payload["page"]
+        payload["page"]["toc"] = toc
+        Jekyll.logger.info "AutoToc:", "Set payload[page][toc] with #{toc.size} sections"
+      end
     end
   end
 end
