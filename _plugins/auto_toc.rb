@@ -87,7 +87,8 @@ module AutoToc
 end
 
 if defined?(Jekyll)
-  Jekyll::Hooks.register [:pages, :documents], :post_convert do |doc|
+  # Use :pre_render hook to ensure toc is available when layout renders
+  Jekyll::Hooks.register [:pages, :documents], :pre_render do |doc|
     # Respect explicit toc in front matter.
     next if doc.data.key?("toc")
 
