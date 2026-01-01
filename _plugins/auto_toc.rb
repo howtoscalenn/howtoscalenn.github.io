@@ -132,28 +132,17 @@ if defined?(Jekyll)
     auto_enabled = doc.data["auto_toc"] == true || doc.data["layout"].to_s == "distill"
     next unless auto_enabled
 
-    Jekyll.logger.info "AutoToc:", "Processing #{doc.relative_path}"
-
     content = doc.content.to_s
 
     # Try HTML extraction first (for Documents where content is already converted)
     toc = AutoToc.extract(content)
 
     # If no HTML headings found, try markdown extraction (for Pages)
-    if toc.empty?
-      Jekyll.logger.info "AutoToc:", "No HTML headings, trying markdown extraction"
-      toc = AutoToc.extract_from_markdown(content)
-    end
-
-    Jekyll.logger.info "AutoToc:", "Found #{toc.size} sections"
+    toc = AutoToc.extract_from_markdown(content) if toc.empty?
 
     unless toc.empty?
       doc.data["toc"] = toc
-      # Set in payload to ensure template can access it as page.toc
-      if payload && payload["page"]
-        payload["page"]["toc"] = toc
-        Jekyll.logger.info "AutoToc:", "Set payload[page][toc] with #{toc.size} sections"
-      end
+      payload["page"]["toc"] = toc if payload && payload["page"]
     end
   end
 end

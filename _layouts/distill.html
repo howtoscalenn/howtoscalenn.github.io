@@ -134,7 +134,6 @@ ${academicLFI}, "${title}", ICLR Blogposts, 2025.
       <d-byline></d-byline>
 
       <d-article>
-        <p style="background:yellow;padding:10px;"><strong>DEBUG:</strong> toc size = {{ page.toc | size }}, toc exists = {% if page.toc %}YES{% else %}NO{% endif %}</p>
         {% if page.toc and page.toc.size > 0 -%}
         <d-contents>
           <nav class="l-text figcaption">
