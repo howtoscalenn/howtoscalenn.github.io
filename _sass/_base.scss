@@ -619,6 +619,17 @@ code {
   padding: 3px 3px;
 }
 
+// Inline code styling (not inside pre blocks)
+:not(pre) > code {
+  padding: .25em .5em;
+  font-size: 85%;
+  color: #0e32ef;
+  background-color: #f3f4f5;
+  border-radius: 3px;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
 
 // Transitioning Themes
 html.transition,
